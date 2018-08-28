@@ -93,10 +93,16 @@ class Spider:
     soup = self.makeRequest(url=self.baseUrl + '/testtaker/signin/SignInPage/PEARSONLANGUAGE', method='post', data=data, pageName="login.html")
     url = soup.select('#examCatalogContainer a')[0]['href']
     print(url)
-    self.getExamCatalogInfo(url)
+    self.getExamCatalogInfo(key, url)
 
-  def getExamCatalogInfo(self, url):
-    soup = self.makeRequest(url=self.baseUrl + url, method="get", pageName="examCatalogInfo")
+  def getExamCatalogInfo(self, key, url):
+    data = {
+        "javax.faces.ViewState": key
+    }
+    soup = self.makeRequest(url=self.baseUrl + url, method="get", pageName="examCatalogInfo.html")
+    url = soup.select()
+
+
 
 
 
