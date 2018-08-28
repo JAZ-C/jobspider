@@ -1,0 +1,13 @@
+# Created by .ignore support plugin (hsz.mobi)
+*.py[cod]
+.idea/
+.idea/*
+.svn
+.svn/*
+*.pyc
+venv/*
+flasky/venv/*
+*.log
+*.log.*
+venv_dns
+venv_dns/*
