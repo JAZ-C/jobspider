@@ -10,7 +10,7 @@ sys.setdefaultencoding('utf-8')
 
 
 def get_proxy():
-  return requests.get("http://123.207.35.36:5010/get/").content.split(":")
+  return requests.get("http://192.168.111.129:8000/?types=0&count=1&protocol=1&country=国内").json()
 
 def delete_proxy(proxy):
   requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
@@ -38,9 +38,9 @@ class Spider:
   def makeRequest(self, url = '', method = 'post', data = {}, pageName = 'index.html'):
     # proxyHttps = requests.get('http://127.0.0.1:8111/proxy?count=1&anonymity=anonymous&protocol=https').json()[0]
     # proxyHttp = requests.get('http://127.0.0.1:8111/proxy?count=1&anonymity=anonymous&protocol=http').json()[0]
-    proxyHttp = get_proxy()
+    proxyHttps = get_proxy()
     proxies = {
-      "http": "http://{0}:{1}".format(proxyHttp[0], proxyHttp[1]),
+      "https": "https://{0}:{1}".format(proxyHttps[0][0], proxyHttps[0][1]),
       # "https": "https://{0}:{1}".format(proxyHttps[0], proxyHttps[1])
     }
     headers = self.headers
