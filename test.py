@@ -19,7 +19,8 @@ class Spider:
   @property
   def headers(self):
     return {
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36"
+      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
+      "Referer": "https://www6.pearsonvue.com/testtaker/registration/Dashboard/PEARSONLANGUAGE/876050"
     }
 
   def get_proxy_https(self):
@@ -74,6 +75,7 @@ def main():
   sp = Spider()
   try:
     start(sp)
+    sp.delete_proxy(sp.https_proxy[0])
   except Exception as e:
     print(e)
     print(sp.http_proxy[0], sp.https_proxy[0])
