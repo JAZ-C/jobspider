@@ -12,7 +12,7 @@ class Spider:
     self.https_proxy = self.get_proxy_https()
     self.http_proxy = self.get_proxy_http()
     self.proxies = {
-      'http': "http://" + ":".join(map(str, self.https_proxy)),
+      'http': "http://" + ":".join(map(str, self.http_proxy)),
       # 'http': "http://" + ".join(map(str, self.http_proxy)),
     }
 
@@ -20,7 +20,8 @@ class Spider:
   def headers(self):
     return {
       "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
-      "Referer": "https://www6.pearsonvue.com/testtaker/registration/Dashboard/PEARSONLANGUAGE/876050"
+      "Host": "www6.pearsonvue.com",
+      "Origin": "https://www6.pearsonvue.com"
     }
 
   def get_proxy_https(self):
@@ -47,7 +48,9 @@ class Spider:
       "SignInForm_SUBMIT": 1,
       "javax.faces.ViewState": key
     }
-    res = self.session.post(url=self.fullUrl, data=data, headers=self.headers, proxies=self.proxies, timeout=20)
+    header = self.headers
+    header["Referer"] = "https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE"
+    res = self.session.post(url=self.fullUrl, data=data, headers=header, proxies=self.proxies, timeout=50)
     file = open('./pages/login.html', 'w')
     file.write(res.text)
     soup = BeautifulSoup(res.text, 'html.parser')
@@ -57,7 +60,76 @@ class Spider:
   def fetchDashboard(self, url):
     file = open('./pages/fetchDashboard.html', 'w')
     # res = file.read()
-    res = self.session.get(self.baseUrl + url, headers=self.headers, proxies=self.proxies, timeout=20)
+    res = self.session.get(self.baseUrl + url, headers=self.headers, proxies=self.proxies, timeout=50)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    file.write(res.text)
+    form = soup.select("#maincontent form")[0]
+    key = form.find(id="javax.faces.ViewState")["value"]
+    id = form["id"]
+    action = form["action"]
+    self.getProvideAnswers(id, key, url, action)
+  
+  def getProvideAnswers(self, id, key, url, action):
+    file = open('./pages/ProvideAnswers.html', 'w')
+    data = {
+      "nextButton": "Schedule this Exam",
+      id + ":_link_hidden_": "",
+      id + ":_idcl": "",
+      id + "_SUBMIT": "1",
+      "javax.faces.ViewState": key
+    }
+    headers = self.headers
+    headers['Referer'] = self.baseUrl + url
+    res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    file.write(res.text)
+    form = soup.find(id='examRegistrationQuestionsForm')
+    self.getSearchPage(form, url)
+  
+  def getSearchPage(self, form, url):
+    file = open('./pages/searchPage.html', 'w')
+    action = form["action"]
+    key = form.find(id="javax.faces.ViewState")["value"]
+    data = {
+      "parentQuestionsIds_component1_SELECT_ONE_RADIOBUTTON_3422":"",
+      "component1_SELECT_ONE_RADIOBUTTON_3422":0,
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_2945":"",
+      "component1_SELECT_ONE_LISTBOX_2945":"HYE",
+      "parentQuestionsIds_component1_TEXT_3394":"",
+      "component1_TEXT_3394":23423,
+      "component1_SELECT_ONE_CHECKBOX_2970":True,
+      "component1_SELECT_ONE_CHECKBOX_3395":True,
+      "component1_SELECT_ONE_CHECKBOX_3016":True,
+      "parentQuestionsIds_component1_SELECT_MANY_CHECKBOX_5145":"",
+      "component1_SELECT_MANY_CHECKBOX_5145":"Study+DIBP+%2F+INZ+01",
+      "component1_SELECT_MANY_CHECKBOX_5145":"Study+DIBP+%2F+INZ+02",
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_3858":"",
+      "component1_SELECT_ONE_LISTBOX_3858":"Education+agent+advisor+-+Specify+below",
+      "parentQuestionsIds_component1_TEXT_3859":"3858%2C3858%2C3858%2C3858",
+      "component1_TEXT_3859":"dfg",
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_4560":"",
+      "component1_SELECT_ONE_LISTBOX_4560":"Canada",
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_3860":"",
+      "component1_SELECT_ONE_LISTBOX_3860":"Australia+-+Post+Study+Work+%28485%29+Visa",
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_3862":"",
+      "component1_SELECT_ONE_LISTBOX_3862":"MBA+%28Master+of+Business+Administration%29",
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_4567":"",
+      "component1_SELECT_ONE_LISTBOX_4567":"Other+-+specify+below",
+      "parentQuestionsIds_component1_TEXT_4569":4567,
+      "component1_TEXT_4569":"xcfgvdfg",
+      "parentQuestionsIds_component1_SELECT_ONE_LISTBOX_5155":"",
+      "component1_SELECT_ONE_LISTBOX_5155":"Occupational+English+Test+%28OET%29",
+      "component1_component_handler":1535645548396,
+      "nextButton":"Next",
+      "examRegistrationQuestionsForm%3A_link_hidden_":"",
+      "examRegistrationQuestionsForm%3A_idcl":"",
+      "examRegistrationQuestionsForm_SUBMIT":1,
+      "javax.faces.ViewState":key
+    }
+    headers = self.headers
+    headers['Referer'] = self.baseUrl + url
+    res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
+    soup = BeautifulSoup(res.text, 'html.parser')
     file.write(res.text)
     print(res)
 
@@ -70,17 +142,17 @@ def start(sp):
   sp.fetchDashboard(dashboardUrl)
 
 
-@retry
+# @retry
 def main():
   sp = Spider()
-  try:
-    start(sp)
-    sp.delete_proxy(sp.https_proxy[0])
-  except Exception as e:
-    print(e)
-    print(sp.http_proxy[0], sp.https_proxy[0])
-    sp.delete_proxy(sp.http_proxy[0])
-    raise ValueError
+  # try:
+  start(sp)
+    # sp.delete_proxy(sp.https_proxy[0])
+  # except Exception as e:
+  #   print(e)
+  #   print(sp.http_proxy[0], sp.https_proxy[0])
+  #   sp.delete_proxy(sp.http_proxy[0])
+  #   raise ValueError
     # sp.delete_proxy(sp.https_proxy[0])
 
 
