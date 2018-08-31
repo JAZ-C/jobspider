@@ -1,3 +1,6 @@
 requests
 beautifulsoup4
 retrying
+flask
+flask-restful
+sqlalchemy

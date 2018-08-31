@@ -3,9 +3,6 @@
 import requests
 from bs4 import BeautifulSoup
 from ipproxy import IpProxy
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 
 def get_proxy():
@@ -20,7 +17,7 @@ class Spider:
         self.baseUrl = 'https://www6.pearsonvue.com'
         self.fullUrl = 'https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE'
         self.http_proxy = IpProxy().http_proxy
-        print self.http_proxy
+        print(self.http_proxy)
         self.https_proxy = IpProxy().https_proxy
         self.proxies = {
             'http': "http://{}".format(self.http_proxy)
@@ -183,89 +180,7 @@ class Spider:
         tc_all = zip(tc_name, tc_address, tc_phone, tc_dir)
 
 
-
-
-
-#   """
-#   发起请求
-#   url: url,
-#   method: method [get, post],
-#   data: data,
-#   pageName: 请求页面保存的文件名
-#   """
-#   def makeRequest(self, url = '', method = 'post', data = {}, pageName = 'index.html'):
-#     # proxyHttps = requests.get('http://127.0.0.1:8111/proxy?count=1&anonymity=anonymous&protocol=https').json()[0]
-#     # proxyHttp = requests.get('http://127.0.0.1:8111/proxy?count=1&anonymity=anonymous&protocol=http').json()[0]
-#     proxyHttps = get_proxy()
-#     proxies = {
-#       "https": "https://{0}:{1}".format(proxyHttps[0][0], proxyHttps[0][1]),
-#       # "https": "https://{0}:{1}".format(proxyHttps[0], proxyHttps[1])
-#     }
-#     headers = self.headers
-#     # headers['X-Forwarded-For'] = proxy[0]
-#     # headers['X-Real-IP'] = proxy[0]
-#     print('proxies: ', proxies)
-#     if method == 'post':
-#       res = self.session.post(url, data, headers=headers, proxies=proxies)
-#     else:
-#       res = self.session.get(url, headers=headers, proxies=proxies)
-#
-#     file = open('./pages/' + pageName, 'w')
-#     file.write(res.text.encode('utf-8',"ignore"))
-#
-#     if 'You reached this page when trying to access' in res.text:
-#       print('error')
-#       exit(1)
-#
-#     return BeautifulSoup(res.text, 'html.parser')
-#
-#   """
-#   页面中提交表单需要发起一个状态
-#   id=javax.faces.ViewState
-#   """
-#   def getStateKey(self, soup):
-#     return soup.find(id="javax.faces.ViewState")["value"]
-#
-#   def start(self):
-#     self.getLoginStateKey()
-#
-#   """
-#   首页
-#   """
-#   def getLoginStateKey(self):
-#     soup = self.makeRequest(self.baseUrl + '/testtaker/signin/SignInPage/PEARSONLANGUAGE', 'get', pageName='index.html')
-#     key = self.getStateKey(soup)
-#     self.login(key)
-#
-#   """
-#   登录
-#   """
-#   def login(self, key):
-#     data = {
-#       "inputUserName": "yuqing2132",
-#       "inputPassword": "youNI2132",
-#       "submitButton": "Sign In",
-#       "SignInForm_SUBMIT": 1,
-#       "javax.faces.ViewState": key
-#     }
-#     soup = self.makeRequest(url=self.baseUrl + '/testtaker/signin/SignInPage/PEARSONLANGUAGE', method='post', data=data, pageName="login.html")
-#     url = soup.select('#examCatalogContainer a')[0]['href']
-#     print(url)
-#     self.getExamCatalogInfo(key, url)
-#
-#   def getExamCatalogInfo(self, key, url):
-#     data = {
-#         "javax.faces.ViewState": key
-#     }
-#     soup = self.makeRequest(url=self.baseUrl + url, method="get", pageName="examCatalogInfo.html")
-#     url = soup.select()
-#
-#
-#
-def start(sp):
-  loginKey = sp.key
-  print(loginKey)
-  sp.login(loginKey)
-
-sp = Spider()
-start(sp)
+if __name__ == '__main__':
+    sp = Spider()
+    loginKey = sp.key
+    sp.login(loginKey)
