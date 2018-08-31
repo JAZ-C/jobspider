@@ -127,6 +127,31 @@ class Spider:
     res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
     soup = BeautifulSoup(res.text, 'html.parser')
     file.write(res.text)
+    form = soup.find(id="testCenterFormId")
+    self.searchList(form, url)
+
+  def searchList(self, form, url):
+    file = open('./pages/result.html', 'w')
+    action = form['action']
+    key = form.find(id="javax.faces.ViewState")["value"]
+    data = {
+      "geoCodeLatitude": 31.2303904,
+      "geoCodeLongitude": 121.47370209999997,
+      "geoCodeTwoCharCountryCode": "CN",
+      "ambiguousSearchResult": "",
+      "mapAvailable": True,
+      "uiSearchSelected": True,
+      "testCenterCode": "",
+      "fullAddress": "shanghai",
+      "testCenterSearch": "Search",
+      "testCenterFormId_SUBMIT": 1,
+      "javax.faces.ViewState": key
+    }
+    headers = self.headers
+    headers['Referer'] = self.baseUrl + url
+    res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    file.write(res.text)
     print(res)
 
 
