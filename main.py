@@ -20,6 +20,7 @@ class Spider:
         self.baseUrl = 'https://www6.pearsonvue.com'
         self.fullUrl = 'https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE'
         self.http_proxy = IpProxy().http_proxy
+        print self.http_proxy
         self.https_proxy = IpProxy().https_proxy
         self.proxies = {
             'http': "http://{}".format(self.http_proxy)
@@ -53,7 +54,8 @@ class Spider:
 
         res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=self.proxies, timeout=50)
         file = open('./pages/login.html', 'w')
-        file.write(res.text.encode('utf-8', "ignore"))
+        file.write(res.text)
+        file.close()
         soup = BeautifulSoup(res.text, 'html.parser')
         url = soup.select('#examCatalogContainer a')[0]['href']
         self.fetch_dashboard(url)
@@ -62,7 +64,8 @@ class Spider:
         file = open('./pages/fetchDashboard.html', 'w')
         res = self.session.get(self.baseUrl + url, headers=self.headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        file.write(res.text.encode('utf-8', "ignore"))
+        file.write(res.text)
+        file.close()
         form = soup.select("#maincontent form")[0]
         key = form.find(id="javax.faces.ViewState")["value"]
         id = form["id"]
@@ -82,7 +85,8 @@ class Spider:
         headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        file.write(res.text.encode('utf-8', "ignore"))
+        file.write(res.text)
+        file.close()
         form = soup.find(id='examRegistrationQuestionsForm')
         self.getSearchPage(form, url)
 
@@ -127,7 +131,59 @@ class Spider:
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         file.write(res.text)
-        print(res)
+        file.close()
+        form = soup.find(id="testCenterFormId")
+        self.searchList(form, url)
+
+    def searchList(self, form, url):
+        file = open('./pages/result.html', 'w')
+        action = form['action']
+        key = form.find(id="javax.faces.ViewState")["value"]
+        data = {
+          "geoCodeLatitude": 31.2303904,
+          "geoCodeLongitude": 121.47370209999997,
+          "geoCodeTwoCharCountryCode": "CN",
+          "ambiguousSearchResult": "",
+          "mapAvailable": True,
+          "uiSearchSelected": True,
+          "testCenterCode": "",
+          "fullAddress": "shanghai",
+          "testCenterSearch": "Search",
+          "testCenterFormId_SUBMIT": 1,
+          "javax.faces.ViewState": key
+        }
+        headers = self.headers
+        headers['Referer'] = self.baseUrl + url
+        res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        tc_name_list = [x.string.strip() for x in soup.select('.tc_name')]
+        tc_address = [x.text.strip() for x in soup.select('.tc_address')]
+        tc_href_list = [x.a['href'].strip() for x in soup.find_all(class_="tc_info") ]
+        tc_id = [x.a['id'].split("_")[1] for x in soup.find_all(class_="tc_info") ]
+        tc_info = zip(tc_name_list, tc_address, tc_id, tc_href_list)
+        file.write(res.text)
+        file.close()
+        self.get_tcinfo(tc_id[0], tc_href_list[0])
+        return tc_info
+
+    def get_tcinfo(self, id, url):
+        file = open('./pages/info.html', 'w')
+        data = {
+            "testCenterid": id,
+            "clientCode": "PEARSONLANGUAGE"
+        }
+        res = self.session.get(self.baseUrl + url, data=data, headers=self.headers, proxies=self.proxies)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        tc_name = soup.find(class_="tc_name").text.strip()
+        tc_address = soup.find(class_="tc_address").text.strip()
+        tc_phone = soup.find(class_="tc_phone").text.strip()
+        tc_dir = soup.find(class_="directions").text.strip()
+        file.write(res.text)
+        file.close()
+        tc_all = zip(tc_name, tc_address, tc_phone, tc_dir)
+
+
+
 
 
 #   """

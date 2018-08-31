@@ -17,5 +17,3 @@ class IpProxy(object):
 
     def delete_proxy(self, ip):
         requests.get(self.proxy_url.format("delete?ip=", ip))
-
-ipproxycls = IpProxy()
