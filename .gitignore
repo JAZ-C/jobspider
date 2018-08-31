@@ -11,3 +11,6 @@ flasky/venv/*
 *.log.*
 venv_dns
 venv_dns/*
+
+.env/
+.vscode/
