@@ -159,7 +159,7 @@ class Spider:
         tc_href_list = [x.a['href'].strip() for x in soup.find_all(class_="tc_info") ] if soup.find_all(class_="tc_info") else []
         tc_id = [x.a['id'].split("_")[1] for x in soup.find_all(class_="tc_info") ] if soup.find_all(class_="tc_info") else []
         tc_info = list(zip(tc_address, tc_id, tc_href_list))
-        tc_info_dict = {x:y for x,y in tc_name_list, tc_info}
+        tc_info_dict = dict(zip(tc_name_list, tc_info))
         # file.write(res.text)
         # file.close()
         return tc_info_dict
@@ -179,6 +179,6 @@ class Spider:
         # file.write(res.text)
         # file.close()
         tc_all = zip(tc_address, tc_phone, tc_dir)
-        tc_info = {x:y for x,y in tc_name, tc_all}
+        tc_info = dict(zip(tc_name, tc_all))
         return tc_info
 
