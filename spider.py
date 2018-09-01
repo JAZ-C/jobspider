@@ -27,7 +27,7 @@ class Spider:
         key = soup.find(id="javax.faces.ViewState")["value"]
         return key
 
-    @retry(tries=3)
+    @retry(stop_max_attempt_number=3)
     def login(self):
         data = {
             "inputUserName": "yuqing2132",
@@ -46,8 +46,7 @@ class Spider:
             res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
             self.http_proxy = try_proxy
             self.proxies = try_proxies
-        except Exception,e:
-            print(str(e))
+        except Exception:
             IpProxy().delete_proxy(try_proxy)
         file = open('./pages/login.html', 'w')
         file.write(res.text)
