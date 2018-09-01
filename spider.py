@@ -3,25 +3,14 @@
 import requests
 from bs4 import BeautifulSoup
 from ipproxy import IpProxy
+from retrying import retry
 
-
-def get_proxy():
-  return requests.get("http://192.168.111.129:8000/?types=0&count=1&protocol=1&country=国内").json()
-
-def delete_proxy(proxy):
-  requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
 
 class Spider:
     def __init__(self):
         self.session = requests.session()
         self.baseUrl = 'https://www6.pearsonvue.com'
         self.fullUrl = 'https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE'
-        self.http_proxy = IpProxy().http_proxy
-        print(self.http_proxy)
-        self.https_proxy = IpProxy().https_proxy
-        self.proxies = {
-            'http': "http://{}".format(self.http_proxy)
-        }
 
     @property
     def headers(self):
@@ -38,18 +27,28 @@ class Spider:
         key = soup.find(id="javax.faces.ViewState")["value"]
         return key
 
-    def login(self, key):
+    @retry(tries=3)
+    def login(self):
         data = {
             "inputUserName": "yuqing2132",
             "inputPassword": "youNI2132",
             "submitButton": "Sign In",
             "SignInForm_SUBMIT": 1,
-            "javax.faces.ViewState": key
+            "javax.faces.ViewState": self.key
         }
         headers = self.headers
         headers["Referer"] = "https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE"
-
-        res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        try:
+            try_proxy = IpProxy().http_proxy
+            try_proxies = {
+                "http": "http://{}".format(try_proxy)
+            }
+            res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
+            self.http_proxy = try_proxy
+            self.proxies = try_proxies
+        except Exception,e:
+            print(str(e))
+            IpProxy().delete_proxy(try_proxy)
         file = open('./pages/login.html', 'w')
         file.write(res.text)
         file.close()
@@ -182,5 +181,4 @@ class Spider:
 
 if __name__ == '__main__':
     sp = Spider()
-    loginKey = sp.key
-    sp.login(loginKey)
+    sp.login()
