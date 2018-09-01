@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from ipproxy import IpProxy
 from retrying import retry
+import re
 
 
 class Spider:
@@ -154,7 +155,7 @@ class Spider:
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
-        tc_address = [x.text.strip() for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
+        tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1)  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
         tc_href_list = [x.a['href'].strip() for x in soup.find_all(class_="tc_info") ] if soup.find_all(class_="tc_info") else []
         tc_id = [x.a['id'].split("_")[1] for x in soup.find_all(class_="tc_info") ] if soup.find_all(class_="tc_info") else []
         tc_info = list(zip(tc_address, tc_id, tc_href_list))
