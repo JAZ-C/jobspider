@@ -1,0 +1,74 @@
+button::after {
+  border: none;
+}
+
+input {
+  outline: none;
+  border: none;
+  list-style: none;
+}
+
+.auth-modal {
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, .6);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .auth-content {
+    width: 70%; // height: 300px;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 30px 40px;
+    .auth-title {
+      font-size: 35px;
+      color: #444;
+      margin-bottom: 30px;
+    }
+    .auth-detail {
+      .auth-tips {
+        color: #666;
+        font-size: 30px;
+        display: flex;
+        align-items: center;
+        &::before {
+          content: '';
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          background-color: #999;
+          border-radius: 10px;
+          margin-right: 10px;
+        }
+      }
+    }
+    .auth-btns {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 40px;
+      .auth-btn {
+        margin: 0;
+        padding: 0;
+        background-color: transparent;
+        display: block;
+        margin-right: 50px;
+        font-size: 30px;
+        transition: all .5s;
+        &:active{
+          opacity: .6;
+        }
+        &.cancel-btn{
+          color: #666;
+        }
+        &.confirm-btn{
+          color: #1AAD16;
+        }
+      }
+    }
+  }
+}

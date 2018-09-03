@@ -1,6 +1,7 @@
 import requests
 from flask_restful import Resource, reqparse
 from settings import AppId, AppSecret
+from flask import jsonify
 
 parser = reqparse.RequestParser()
 parser.add_argument('code', type=str)
@@ -18,12 +19,12 @@ class Login(Resource):
         )
         res = requests.post(url).json()
         if not 'openid' in res:
-            return {
-                code: -1,
+            return jsonify({
+                "code": -1,
                 "message": '获取ipenid失败',
                 "data": res
-            }
-        return {
-            code: 0,
+            })
+        return jsonify({
+            "code": 0,
             "data": res['openid']
-        }
+        })

@@ -17,4 +17,6 @@ venv_dns/*
 
 pages/*
 
+front/node_modules
+
 settings.py
