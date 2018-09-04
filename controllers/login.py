@@ -3,10 +3,17 @@ from flask_restful import Resource, reqparse
 from settings import AppId, AppSecret
 from flask import jsonify
 
+from database import db
+from models.user import User
+
 parser = reqparse.RequestParser()
 parser.add_argument('code', type=str)
-parser.add_argument('username', type=str)
-parser.add_argument('avatar', type=str)
+parser.add_argument('avatarUrl', type=str)
+parser.add_argument('city', type=str)
+parser.add_argument('country', type=str)
+parser.add_argument('gender', type=int)
+parser.add_argument('nickName', type=str)
+parser.add_argument('province', type=str)
 
 class Login(Resource):
     def post(self):
@@ -24,7 +31,21 @@ class Login(Resource):
                 "message": '获取ipenid失败',
                 "data": res
             })
+        openId = res['openid']
+        user = User.query.filter_by(openId=openId).first()
+        if user is None:
+            currentUser = User(
+                avatarUrl=args["avatarUrl"],
+                city=args["city"],
+                country=args["country"],
+                gender=args["gender"],
+                nickName=args["nickName"],
+                province=args["province"],
+                openId=openId
+            )
+            db.session.add(currentUser)
+            db.session.commit()
         return jsonify({
             "code": 0,
-            "data": res['openid']
+            "data": openId
         })
