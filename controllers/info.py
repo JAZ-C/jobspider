@@ -1,6 +1,9 @@
 from flask_restful import Resource, reqparse
-from flask import jsonify
+from flask import jsonify, request
 from spider import Spider
+from database import db
+from models.yasi_info import YasiInfo
+from models.user import User
 
 parser = reqparse.RequestParser()
 parser.add_argument('info_id')
@@ -13,7 +16,21 @@ class Info(Resource):
         self.sp = Spider()
 
     def get(self, address):
-        return jsonify(self.sp.searchList(address))
+        openId = request.args["openId"]
+        user = User.query.filter_by(openId=openId).first()
+        if user is None:
+            return []
+        results = YasiInfo.query.filter_by(cityname=address).first()
+        if results is None:
+            results = self.sp.searchList(address)
+            newCity = YasiInfo(
+                cityname=address,
+                detail=results
+            )
+            db.session.add(newCity)
+            db.session.commit()
+            return jsonify(results)
+        return jsonify(results.detail)
 
     def post(self):
         args = parser.parse_args()

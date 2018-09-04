@@ -1,15 +1,9 @@
 import Taro from '@tarojs/taro';
 import {
-  SHARE_SUCCESS,
-  LOGIN
+  LOGIN,
+  UPDATE_SHARE_NUM
 } from '../constants/const'
 import {request, makeToast} from '../utils/util';
-
-export const shareSuccess = () => {
-  return {
-    type: SHARE_SUCCESS
-  }
-}
 
 export const login = ({userInfo}) => {
   return async dispatch => {
@@ -32,5 +26,23 @@ export const login = ({userInfo}) => {
       type: LOGIN,
       payload: data
     });
+  }
+}
+
+export const updateShareNum = openId => {
+  return async dispatch => {
+    const {code, data, message} = await request({
+      url: 'update_share_num',
+      method: "GET",
+      data: {
+        openId
+      }
+    });
+    console.log(code, data, message);
+    if(code === 0){
+      dispatch({
+        type: UPDATE_SHARE_NUM
+      })
+    }
   }
 }

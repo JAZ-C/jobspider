@@ -1,9 +1,9 @@
 import Taro, { Component } from '@tarojs/taro'
-import { View, Button, Text, Image } from '@tarojs/components'
+import { View, Button, Text, Image, Input } from '@tarojs/components'
 import { connect } from '@tarojs/redux'
 
-import { shareSuccess, login } from '../../actions/counter'
-import {baseUrl} from '../../utils/util';
+import { login, updateShareNum } from '../../actions/counter'
+import {baseUrl, makeToast} from '../../utils/util';
 import AuthModal from '../../components/auth-modal/auth-modal';
 
 import './index.less'
@@ -11,12 +11,12 @@ import './index.less'
 @connect(({ counter }) => ({
   counter
 }), (dispatch) => ({
-  shareSuccess () {
-    dispatch(shareSuccess())
-  },
   login (userInfo) {
     dispatch(login(userInfo))
-  }
+  },
+  updateShareNum (openId) {
+    dispatch(updateShareNum(openId))
+  },
 }))
 export default class Index extends Component {
   config = {
@@ -26,10 +26,18 @@ export default class Index extends Component {
   state = {
     showGetUserInfoModal: false, // 获取用户信息弹窗
     showInfoImg: false, //分享二维码
+    cityName: ''
   }
 
   componentDidMount(){
     this.getUserInfo();
+    Taro.showLoading();
+  }
+
+  componentWillReceiveProps({counter: openId}){
+    if(openId){
+      Taro.hideLoading();
+    }
   }
 
   /**
@@ -37,12 +45,14 @@ export default class Index extends Component {
    */
   getUserInfo = async (info) => {
     if(info){
-      // 这是已经获取到userInfo的情况
+      // 这是已经获取到userInfo的情况(第一次登陆, 授权)
+      Taro.showLoading();
       this.setState({
         showGetUserInfoModal: false
       }, () => this.login(info));
       return ;
     }
+    
     try {
       const setting = await Taro.getSetting();
       if (!setting.authSetting['scope.userInfo']){
@@ -56,6 +66,8 @@ export default class Index extends Component {
     } catch (error) {
       this.setState({
         showGetUserInfoModal: true
+      }, () => {
+        Taro.hideLoading();
       });
     }
   }
@@ -82,7 +94,7 @@ export default class Index extends Component {
       title: '转发成功',
       icon: 'none'
     });
-    this.shareSuccess();
+    this.updateShareNum(this.props.counter.openId);
   }
 
   /**
@@ -113,15 +125,38 @@ export default class Index extends Component {
     })
   }
 
+  getInputText = (e) => {
+    this.setState({
+      cityName: e.detail.value
+    });
+  }
+
+  search = () => {
+    const {cityName} = this.state;
+    if(!cityName){
+      makeToast('请输入城市名称');
+    }
+    Taro.navigateTo({
+      url: '/pages/list/index?searchText=' + cityName
+    });
+  }
+
   render () {
-    const {showGetUserInfoModal, showInfoImg} = this.state;
+    const {showGetUserInfoModal, showInfoImg, cityName} = this.state;
     return (
       <View className='container'>
         <View className='container-top'>
-          <Button className='forward' open-type='share'>转发</Button>
-          <Button className='forward' onClick={this.showInfoImg.bind(this)}>加入考位分享群</Button>
-          <Button className='forward'>转发</Button>
-          <Text>转发小程序到群即可免费查询</Text>
+          <View className='container-top-btn'>
+            <Button className='forward' open-type='share'>转发</Button>
+            <Button className='forward' onClick={this.showInfoImg.bind(this)}>加入考位分享群</Button>
+          </View>
+          <View className='container-top-search'>
+            <Input value={cityName} onInput={this.getInputText} />
+            <Button onClick={this.search} className='search-btn'>搜索</Button>
+          </View>
+          <View className='extra-txt'>
+            <Text>转发小程序到群即可免费查询</Text>
+          </View>
         </View>
         {/* 获取授权弹窗 */}
         {
