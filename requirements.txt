@@ -6,4 +6,5 @@ flask-restful
 flask_sqlalchemy
 flask-script
 flask_migrate
+flask_redis
 pymysql
