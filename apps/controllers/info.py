@@ -25,6 +25,7 @@ class Info(Resource):
             try:
                 results = self.sp.searchList(address)
                 redis_store.set(address, results)
+                redis_store.expire(address, 1296000) #设置过期时间为15天
                 rv = results
                 rv["code"] = 200
                 # newCity = YasiInfo(
@@ -55,6 +56,7 @@ class Info(Resource):
             try:
                 rv = self.sp.get_tcinfo(info_id, url)
                 redis_store.set(info_id, rv)
+                redis_store.expire(info_id, 1296000)#设置过期时间为15天
                 rv["code"] = 200
             except Exception as e:
                 print(e)
