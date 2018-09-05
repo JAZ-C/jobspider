@@ -15,24 +15,22 @@ redis_store = FlaskRedis()
 api = Api()
 migrate = Migrate()
 
-def creat_app():
-    app = Flask(__name__)
+# def creat_app():
+app = Flask(__name__)
 
-    with app.app_context():
-        app.config.from_object(Config)
-        db.init_app(app)
-        redis_store.init_app(app)
-        migrate.init_app(app, db)
-        api.init_app(app)
+app.config.from_object(Config)
+db.init_app(app)
+redis_store.init_app(app)
+migrate.init_app(app, db)
+api.init_app(app)
 
-        from apps.controllers.login import Login
-        from apps.controllers.plus_share_num import PlusShareNum
-        from apps.controllers.info import Info
-        api.add_resource(Login, '/login')
-        api.add_resource(PlusShareNum, '/update_share_num')
-        api.add_resource(Info, '/info/<string:address>')
+from apps.controllers.login import Login
+from apps.controllers.plus_share_num import PlusShareNum
+from apps.controllers.info import Info
+api.add_resource(Login, '/login')
+api.add_resource(PlusShareNum, '/update_share_num')
+api.add_resource(Info, '/info/<string:address>')
 
-        return app
 
 
 
