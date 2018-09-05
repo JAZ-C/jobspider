@@ -3,7 +3,7 @@ from flask_restful import Resource, reqparse
 from config import Config
 from flask import jsonify
 
-from database import db
+from apps import db
 from models.user import User
 
 parser = reqparse.RequestParser()
