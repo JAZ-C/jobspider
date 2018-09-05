@@ -188,11 +188,15 @@ class Spider:
     def get_tcinfo(self, id, url):
         # file = open('./pages/info.html', 'w')
         # self.login()
+        try_proxy = IpProxy().http_proxy
+        try_proxies = {
+                "http": "http://{}".format(try_proxy)
+            }
         data = {
             "testCenterid": id,
             "clientCode": "PEARSONLANGUAGE"
         }
-        res = self.session.get(self.baseUrl + url, data=data, headers=self.headers)
+        res = self.session.get(self.baseUrl + url, data=data, headers=self.headers, proxies=try_proxies)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name = soup.find(class_="tc_name").text.strip()
         tc_address = soup.find(class_="tc_address").text.strip()
