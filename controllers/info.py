@@ -13,10 +13,26 @@ class Info(Resource):
         self.sp = Spider()
 
     def get(self, address):
-        return jsonify(self.sp.searchList(address))
+        try:
+            rv = self.sp.searchList(address)
+            rv["code"] = 200
+        except:
+            rv = {
+                "code": 500,
+                "msg": "Get Address List Fail"
+            }
+        return jsonify(rv)
 
     def post(self):
         args = parser.parse_args()
         info_id = args.get('info_id')
         url = args.get('url')
-        return jsonify(self.sp.get_tcinfo(info_id, url))
+        try:
+            rv = self.sp.get_tcinfo(info_id, url)
+            rv["code"] = 200
+        except:
+            rv = {
+                "code": 500,
+                "msg": "Get Address Info fail"
+            }
+        return jsonify(rv)

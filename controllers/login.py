@@ -1,6 +1,6 @@
 import requests
 from flask_restful import Resource, reqparse
-from settings import AppId, AppSecret
+from config import Config
 from flask import jsonify
 
 parser = reqparse.RequestParser()
@@ -13,8 +13,8 @@ class Login(Resource):
         args = parser.parse_args()
         code = args['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session?appid={}&secret={}&js_code={}&grant_type=authorization_code'.format(
-            AppId,
-            AppSecret,
+            Config.APPID,
+            Config.APPSECRET,
             code
         )
         res = requests.post(url).json()
