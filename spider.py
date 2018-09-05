@@ -173,9 +173,9 @@ class Spider:
 
     def get_tcinfo(self, id, url):
         try_proxy = IpProxy().http_proxy
-        try_proxys = IpProxy().https_proxy
+        # try_proxys = IpProxy().https_proxy
         try_proxies = {
-            "https": "https://{}".format(try_proxys),
+            # "https": "https://{}".format(try_proxys),
             "http": "http://{}".format(try_proxy)
         }
         data = {
@@ -183,13 +183,15 @@ class Spider:
             "clientCode": "PEARSONLANGUAGE"
         }
         res = self.session.get(self.baseUrl + url, data=data, headers=self.headers, proxies=try_proxies)
+        file = open('./test.html', 'w')
+        file.write(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name = soup.find(class_="tc_name").text.strip()
         tc_address = soup.find(class_="tc_address").text.strip()
         tc_phone = soup.find(class_="tc_phone").text.strip()
         tc_dir = soup.find(class_="directions").text.strip()
-        tc_all = [tc_address, tc_phone, tc_dir]
-        tc_info = {tc_name: tc_all}
+        tc_all = [tc_name, tc_phone, tc_dir]
+        tc_info = {"tc_info": tc_all}
         return tc_info
 
 

@@ -3,12 +3,19 @@ import { View, Text} from '@tarojs/components'
 import { connect } from '@tarojs/redux'
 
 import {request} from '../../utils/util';
+import { setInfo } from '../../actions/counter'
 
 import './index.less'
 
 @connect(({ counter }) => ({
   counter
-}))
+}), dispatch => (
+  {
+    setInfo(info){
+      dispatch(setInfo(info))
+    }
+  }
+))
 export default class Index extends Component {
   config = {
     navigationBarTitleText: '考位列表'
@@ -35,25 +42,29 @@ export default class Index extends Component {
       url: `info/${city}?openId=${openId}`,
       method: 'GET'
     });
-    if(Array.isArray(res)){
+    if(res.code === 200){
       this.setState({
-        infoList: res
+        infoList: res[cityName]
       });
     }
     Taro.hideLoading();
   }
 
-  getDetail = info => {
-    console.log(info);
+  getDetail = (info, cityName) => {
+    console.log(cityName);
+    this.setInfo(info);
+    Taro.navigateTo({
+      url: '/pages/detail/index?cityName=' + cityName
+    })
   }
 
   render () {
-    const {infoList} = this.state;
+    const {infoList, cityName} = this.state;
     return (
       <View className='container'>
         {
           infoList ? infoList.map(info => (
-            <View className='info' key={info[2]} onClick={this.getDetail.bind(this, info)}>
+            <View className='info' key={info[2]} onClick={this.getDetail.bind(this, info, cityName)}>
               <View className='info-tc_name'>
                 <Text>{info[0]}</Text>
               </View>

@@ -1,7 +1,8 @@
 import Taro from '@tarojs/taro';
 import {
   LOGIN,
-  UPDATE_SHARE_NUM
+  UPDATE_SHARE_NUM,
+  SET_INFO
 } from '../constants/const'
 import {request, makeToast} from '../utils/util';
 
@@ -44,5 +45,14 @@ export const updateShareNum = openId => {
         type: UPDATE_SHARE_NUM
       })
     }
+  }
+}
+
+export const setInfo = info => {
+  return dispatch => {
+    dispatch({
+      type: SET_INFO,
+      payload: info
+    })
   }
 }

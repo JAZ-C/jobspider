@@ -1,8 +1,9 @@
-import { LOGIN, UPDATE_SHARE_NUM } from '../constants/const'
+import { LOGIN, UPDATE_SHARE_NUM, SET_INFO } from '../constants/const'
 
 const INITIAL_STATE = {
   shareNum: 0,
-  openId: null
+  openId: null,
+  info: []
 }
 
 export default (state = INITIAL_STATE, action) => {
@@ -16,6 +17,11 @@ export default (state = INITIAL_STATE, action) => {
        return {
          ...state,
          openId: action.payload
+       }
+     case SET_INFO:
+       return {
+         ...state,
+         info: action.payload
        }
      default:
        return state
