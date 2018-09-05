@@ -5,7 +5,7 @@ import requests
 class IpProxy(object):
 
     def __init__(self):
-        self.proxy_url = "http://192.168.78.131:8000/{}{}" #代理IP运行主机IP地址
+        self.proxy_url = "http://127.0.0.1:8000/{}{}" #代理IP运行主机IP地址
         self.https_proxy = self.get_proxy("https")
         self.http_proxy = self.get_proxy()
 

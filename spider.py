@@ -61,18 +61,20 @@ class Spider:
         headers["Referer"] = "https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE"
         try:
             try_proxy = IpProxy().http_proxy
+            try_proxys = IpProxy().https_proxy
             try_proxies = {
+                "https": "https://{}".format(try_proxys),
                 "http": "http://{}".format(try_proxy)
             }
             IpProxy().delete_proxy(try_proxy.split(":")[0])
             res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
             self.http_proxy = try_proxy
             self.proxies = try_proxies
+            soup = BeautifulSoup(res.text, 'html.parser')
+            url = soup.select('#examCatalogContainer a')[0]['href']
+            self.fetch_dashboard(url)
         except Exception as e:
             print(e)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        url = soup.select('#examCatalogContainer a')[0]['href']
-        self.fetch_dashboard(url)
 
     def fetch_dashboard(self, url):
         res = self.session.get(self.baseUrl + url, headers=self.headers, proxies=self.proxies, timeout=50)
@@ -171,9 +173,11 @@ class Spider:
 
     def get_tcinfo(self, id, url):
         try_proxy = IpProxy().http_proxy
+        try_proxys = IpProxy().https_proxy
         try_proxies = {
-                "http": "http://{}".format(try_proxy)
-            }
+            "https": "https://{}".format(try_proxys),
+            "http": "http://{}".format(try_proxy)
+        }
         data = {
             "testCenterId": id,
             "clientCode": "PEARSONLANGUAGE"
@@ -188,3 +192,5 @@ class Spider:
         tc_info = {tc_name: tc_all}
         return tc_info
 
+
+# print(Spider().searchList('shanghai'))

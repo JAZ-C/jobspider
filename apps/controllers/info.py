@@ -20,6 +20,7 @@ class Info(Resource):
         user = User.query.filter_by(openId=openId).first()
         if user is None:
             return []
+        redis_store.delete(address)
         rv = redis_store.get(address)
         if not rv:
             try:
