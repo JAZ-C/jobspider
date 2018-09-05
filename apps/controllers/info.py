@@ -16,17 +16,18 @@ class Info(Resource):
         self.sp = Spider()
 
     def get(self, address):
-        openId = request.args["openId"]
-        user = User.query.filter_by(openId=openId).first()
-        if user is None:
-            return []
-        rv = redis_store.get(address)
+        # openId = request.args["openId"]
+        # user = User.query.filter_by(openId=openId).first()
+        # if user is None:
+        #     return []
+        # rv = redis_store.get(address)
+        rv = None
         if not rv:
             try:
                 results = self.sp.searchList(address)
                 redis_store.set(address, results)
                 redis_store.expire(address, 1296000) #设置过期时间为15天
-                rv = results
+                rv = {"address": results}
                 rv["code"] = 200
                 # newCity = YasiInfo(
                 #     cityname=address,
@@ -34,7 +35,8 @@ class Info(Resource):
                 # )
                 # db.session.add(newCity)
                 # db.session.commit()
-            except:
+            except Exception as e:
+                print(e)
                 rv = {
                     "code": 500,
                     "msg": "Get Address Info List Fail!"

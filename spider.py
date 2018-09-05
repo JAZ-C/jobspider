@@ -193,7 +193,7 @@ class Spider:
                 "http": "http://{}".format(try_proxy)
             }
         data = {
-            "testCenterid": id,
+            "testCenterId": id,
             "clientCode": "PEARSONLANGUAGE"
         }
         res = self.session.get(self.baseUrl + url, data=data, headers=self.headers, proxies=try_proxies)
