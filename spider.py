@@ -70,19 +70,13 @@ class Spider:
             self.proxies = try_proxies
         except Exception as e:
             print(e)
-        # file = open('./pages/login.html', 'w')
-        # file.write(res.text)
-        # file.close()
         soup = BeautifulSoup(res.text, 'html.parser')
         url = soup.select('#examCatalogContainer a')[0]['href']
         self.fetch_dashboard(url)
 
     def fetch_dashboard(self, url):
-        # file = open('./pages/fetchDashboard.html', 'w')
         res = self.session.get(self.baseUrl + url, headers=self.headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        # file.write(res.text)
-        # file.close()
         form = soup.select("#maincontent form")[0]
         key = form.find(id="javax.faces.ViewState")["value"]
         id = form["id"]
@@ -90,7 +84,6 @@ class Spider:
         self.getProvideAnswers(id, key, url, action)
 
     def getProvideAnswers(self, id, key, url, action):
-        # file = open('./pages/ProvideAnswers.html', 'w')
         data = {
           "nextButton": "Schedule this Exam",
           id + ":_link_hidden_": "",
@@ -102,13 +95,10 @@ class Spider:
         headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        # file.write(res.text)
-        # file.close()
         form = soup.find(id='examRegistrationQuestionsForm')
         self.getSearchPage(form, url)
 
     def getSearchPage(self, form, url):
-        # file = open('./pages/searchPage.html', 'w')
         action = form["action"]
         key = form.find(id="javax.faces.ViewState")["value"]
         data = {
@@ -147,14 +137,11 @@ class Spider:
         headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        # file.write(res.text)
-        # file.close()
         form = soup.find(id="testCenterFormId")
         self.searchform = form
         self.searchurl = url
 
     def searchList(self, address):
-        # file = open('./pages/result.html', 'w', encoding='utf-8')
         self.login()
         action = self.searchform['action']
         key = self.searchform.find(id="javax.faces.ViewState")["value"]
@@ -174,20 +161,15 @@ class Spider:
         headers = self.headers
         headers['Referer'] = self.baseUrl + self.searchurl
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
-        # file = open('./result.html', 'w')
-        # file.write(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
         tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
         tc_href_list = [x.a['href'].strip() for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_id = [x.a['id'].split("_")[1] for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_info = list(zip(tc_name_list, tc_address, tc_id, tc_href_list))
-        # tc_info_dict = dict(zip(tc_name_list, tc_info))
         return tc_info
 
     def get_tcinfo(self, id, url):
-        # file = open('./pages/info.html', 'w')
-        # self.login()
         try_proxy = IpProxy().http_proxy
         try_proxies = {
                 "http": "http://{}".format(try_proxy)

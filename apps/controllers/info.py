@@ -16,12 +16,11 @@ class Info(Resource):
         self.sp = Spider()
 
     def get(self, address):
-        # openId = request.args["openId"]
-        # user = User.query.filter_by(openId=openId).first()
-        # if user is None:
-        #     return []
-        # rv = redis_store.get(address)
-        rv = None
+        openId = request.args["openId"]
+        user = User.query.filter_by(openId=openId).first()
+        if user is None:
+            return []
+        rv = redis_store.get(address)
         if not rv:
             try:
                 results = self.sp.searchList(address)
@@ -29,12 +28,6 @@ class Info(Resource):
                 redis_store.expire(address, 1296000) #设置过期时间为15天
                 rv = {"address": results}
                 rv["code"] = 200
-                # newCity = YasiInfo(
-                #     cityname=address,
-                #     detail=results
-                # )
-                # db.session.add(newCity)
-                # db.session.commit()
             except Exception as e:
                 print(e)
                 rv = {
@@ -51,9 +44,7 @@ class Info(Resource):
         args = parser.parse_args()
         info_id = args.get('info_id')
         url = args.get('url')
-        # redis_store.delete(info_id)
         rv = redis_store.get(info_id)
-        print(rv)
         if not rv:
             try:
                 rv = self.sp.get_tcinfo(info_id, url)
