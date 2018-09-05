@@ -16,12 +16,10 @@ class Info(Resource):
         self.sp = Spider()
 
     def get(self, address):
-        # openId = request.args["openId"]
-        # user = User.query.filter_by(openId=openId).first()
-        # if user is None:
-        #     return []
-        # results = YasiInfo.query.filter_by(cityname=address).first()
-
+        openId = request.args["openId"]
+        user = User.query.filter_by(openId=openId).first()
+        if user is None:
+            return []
         rv = redis_store.get(address)
         if not rv:
             try:
