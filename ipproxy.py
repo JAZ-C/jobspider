@@ -5,7 +5,7 @@ import requests
 class IpProxy(object):
 
     def __init__(self):
-        self.proxy_url = "http://192.168.111.129:8000/{}{}" #代理IP运行主机IP地址
+        self.proxy_url = "http://192.168.78.131:8000/{}{}" #代理IP运行主机IP地址
         self.https_proxy = self.get_proxy("https")
         self.http_proxy = self.get_proxy()
 
@@ -16,4 +16,5 @@ class IpProxy(object):
         return proxy
 
     def delete_proxy(self, ip):
+        print(ip)
         requests.get(self.proxy_url.format("delete?ip=", ip))

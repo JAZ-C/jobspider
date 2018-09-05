@@ -1,11 +1,30 @@
 #coding: utf8
 
 import requests
+import random
 from bs4 import BeautifulSoup
 from ipproxy import IpProxy
 from retrying import retry
 import re
 
+USER_AGENTS = [
+    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",
+    "Mozilla/4.0 (compatible; MSIE 7.0; AOL 9.5; AOLBuild 4337.35; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+    "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)",
+    "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 2.0.50727; Media Center PC 6.0)",
+    "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0; WOW64; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET CLR 1.0.3705; .NET CLR 1.1.4322)",
+    "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 5.2; .NET CLR 1.1.4322; .NET CLR 2.0.50727; InfoPath.2; .NET CLR 3.0.04506.30)",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/523.15 (KHTML, like Gecko, Safari/419.3) Arora/0.3 (Change: 287 c9dfb30)",
+    "Mozilla/5.0 (X11; U; Linux; en-US) AppleWebKit/527+ (KHTML, like Gecko, Safari/419.3) Arora/0.6",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1",
+    "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9) Gecko/20080705 Firefox/3.0 Kapiko/3.0",
+    "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5",
+    "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.8) Gecko Fedora/1.9.0.8-1.fc10 Kazehakase/0.5.6",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.20 (KHTML, like Gecko) Chrome/19.0.1036.7 Safari/535.20",
+    "Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; fr) Presto/2.9.168 Version/11.52",
+]
 
 class Spider:
     def __init__(self):
@@ -15,8 +34,9 @@ class Spider:
 
     @property
     def headers(self):
+        user_agent = random.choice(USER_AGENTS)
         return {
-          "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
+          "User-Agent": user_agent,
           "Host": "www6.pearsonvue.com",
           "Origin": "https://www6.pearsonvue.com"
         }
@@ -31,8 +51,8 @@ class Spider:
     @retry(stop_max_attempt_number=3)
     def login(self):
         data = {
-            "inputUserName": "yuqing2132",
-            "inputPassword": "youNI2132",
+            "inputUserName": "wq12345",
+            "inputPassword": "ceshiMIMA123../",
             "submitButton": "Sign In",
             "SignInForm_SUBMIT": 1,
             "javax.faces.ViewState": self.key
@@ -44,11 +64,12 @@ class Spider:
             try_proxies = {
                 "http": "http://{}".format(try_proxy)
             }
+            IpProxy().delete_proxy(try_proxy.split(":")[0])
             res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
             self.http_proxy = try_proxy
             self.proxies = try_proxies
-        except Exception:
-            IpProxy().delete_proxy(try_proxy)
+        except Exception as e:
+            print(e)
         # file = open('./pages/login.html', 'w')
         # file.write(res.text)
         # file.close()
@@ -153,8 +174,8 @@ class Spider:
         headers = self.headers
         headers['Referer'] = self.baseUrl + self.searchurl
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
-        file = open('./result.html', 'w')
-        file.write(res.text)
+        # file = open('./result.html', 'w')
+        # file.write(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
         tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
@@ -166,19 +187,18 @@ class Spider:
 
     def get_tcinfo(self, id, url):
         # file = open('./pages/info.html', 'w')
+        # self.login()
         data = {
             "testCenterid": id,
             "clientCode": "PEARSONLANGUAGE"
         }
-        res = self.session.get(self.baseUrl + url, data=data, headers=self.headers, proxies=self.proxies)
+        res = self.session.get(self.baseUrl + url, data=data, headers=self.headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name = soup.find(class_="tc_name").text.strip()
         tc_address = soup.find(class_="tc_address").text.strip()
         tc_phone = soup.find(class_="tc_phone").text.strip()
         tc_dir = soup.find(class_="directions").text.strip()
-        # file.write(res.text)
-        # file.close()
-        tc_all = zip(tc_address, tc_phone, tc_dir)
-        tc_info = dict(zip(tc_name, tc_all))
+        tc_all = [tc_address, tc_phone, tc_dir]
+        tc_info = {tc_name: tc_all}
         return tc_info
 

@@ -16,13 +16,14 @@ class Info(Resource):
         self.sp = Spider()
 
     def get(self, address):
-        openId = request.args["openId"]
-        user = User.query.filter_by(openId=openId).first()
-        if user is None:
-            return []
+        # openId = request.args["openId"]
+        # user = User.query.filter_by(openId=openId).first()
+        # if user is None:
+        #     return []
         # results = YasiInfo.query.filter_by(cityname=address).first()
-        results = redis_store.get(address)
-        if not results:
+
+        rv = redis_store.get(address)
+        if not rv:
             try:
                 results = self.sp.searchList(address)
                 redis_store.set(address, results)
@@ -39,22 +40,31 @@ class Info(Resource):
                     "code": 500,
                     "msg": "Get Address Info List Fail!"
                 }
+        else:
+            rv = {address: eval(rv)}
+            rv["code"] = 200
         return jsonify(rv)
 
 
-    def post(self):
+    def post(self, address):
         args = parser.parse_args()
         info_id = args.get('info_id')
         url = args.get('url')
+        # redis_store.delete(info_id)
         rv = redis_store.get(info_id)
+        print(rv)
         if not rv:
             try:
                 rv = self.sp.get_tcinfo(info_id, url)
                 redis_store.set(info_id, rv)
                 rv["code"] = 200
-            except:
+            except Exception as e:
+                print(e)
                 rv = {
                     "code": 500,
                     "msg": "Get Address Info fail"
                 }
+        else:
+            rv = eval(rv)
+            rv["code"] = 200
         return jsonify(rv)

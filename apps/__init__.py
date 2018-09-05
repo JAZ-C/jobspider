@@ -20,9 +20,9 @@ app = Flask(__name__)
 
 app.config.from_object(Config)
 db.init_app(app)
-redis_store.init_app(app)
+redis_store.init_app(app, decode_responses=True)
 migrate.init_app(app, db)
-api.init_app(app)
+
 
 from apps.controllers.login import Login
 from apps.controllers.plus_share_num import PlusShareNum
@@ -30,6 +30,7 @@ from apps.controllers.info import Info
 api.add_resource(Login, '/login')
 api.add_resource(PlusShareNum, '/update_share_num')
 api.add_resource(Info, '/info/<string:address>')
+api.init_app(app)
 
 
 
