@@ -3,4 +3,7 @@ beautifulsoup4
 retrying
 flask
 flask-restful
-sqlalchemy
+flask_sqlalchemy
+flask-script
+flask_migrate
+pymysql

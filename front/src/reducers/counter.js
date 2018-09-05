@@ -1,4 +1,4 @@
-import { SHARE_SUCCESS, LOGIN } from '../constants/const'
+import { LOGIN, UPDATE_SHARE_NUM } from '../constants/const'
 
 const INITIAL_STATE = {
   shareNum: 0,
@@ -7,7 +7,7 @@ const INITIAL_STATE = {
 
 export default (state = INITIAL_STATE, action) => {
   switch (action.type) {
-    case SHARE_SUCCESS:
+    case UPDATE_SHARE_NUM:
       return {
         ...state,
         shareNum: state.shareNum + 1

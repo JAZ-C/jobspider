@@ -20,3 +20,5 @@ pages/*
 front/node_modules
 
 settings.py
+
+migrations/

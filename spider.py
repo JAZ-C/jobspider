@@ -153,16 +153,16 @@ class Spider:
         headers = self.headers
         headers['Referer'] = self.baseUrl + self.searchurl
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        file = open('./result.html', 'w')
+        file.write(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
-        tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1)  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
-        tc_href_list = [x.a['href'].strip() for x in soup.find_all(class_="tc_info") ] if soup.find_all(class_="tc_info") else []
-        tc_id = [x.a['id'].split("_")[1] for x in soup.find_all(class_="tc_info") ] if soup.find_all(class_="tc_info") else []
-        tc_info = list(zip(tc_address, tc_id, tc_href_list))
-        tc_info_dict = dict(zip(tc_name_list, tc_info))
-        # file.write(res.text)
-        # file.close()
-        return tc_info_dict
+        tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
+        tc_href_list = [x.a['href'].strip() for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
+        tc_id = [x.a['id'].split("_")[1] for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
+        tc_info = list(zip(tc_name_list, tc_address, tc_id, tc_href_list))
+        # tc_info_dict = dict(zip(tc_name_list, tc_info))
+        return tc_info
 
     def get_tcinfo(self, id, url):
         # file = open('./pages/info.html', 'w')

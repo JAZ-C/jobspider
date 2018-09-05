@@ -13,7 +13,8 @@ const store = configStore()
 class App extends Component {
   config = {
     pages: [
-      'pages/index/index'
+      'pages/index/index',
+      'pages/list/index',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -22,14 +23,6 @@ class App extends Component {
       navigationBarTextStyle: 'black'
     }
   }
-
-  componentDidMount () {}
-
-  componentDidShow () {}
-
-  componentDidHide () {}
-
-  componentCatchError () {}
 
   render () {
     return (

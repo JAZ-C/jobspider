@@ -24,7 +24,7 @@ export default class AuthModal extends Component{
   render(){
     const {showCancelBtn} = this.props;
     return (
-      <View className='auth-modal container'>
+      <View className='auth-modal'>
         <View className='auth-content'>
           <View className='auth-title'>微信授权</View>
           <View className='auth-detail'>
