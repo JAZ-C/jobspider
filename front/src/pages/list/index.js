@@ -51,7 +51,6 @@ export default class Index extends Component {
   }
 
   getDetail = (info, cityName) => {
-    console.log(cityName);
     this.setInfo(info);
     Taro.navigateTo({
       url: '/pages/detail/index?cityName=' + cityName

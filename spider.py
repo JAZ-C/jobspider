@@ -195,4 +195,5 @@ class Spider:
         return tc_info
 
 
-# print(Spider().searchList('shanghai'))
+if __name__ == "__main__":
+    print(Spider().searchList('shanghai'))

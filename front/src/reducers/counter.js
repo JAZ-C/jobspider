@@ -11,12 +11,12 @@ export default (state = INITIAL_STATE, action) => {
     case UPDATE_SHARE_NUM:
       return {
         ...state,
-        shareNum: state.shareNum + 1
+        shareNum: action.payload || state.shareNum + 1
       }
      case LOGIN:
        return {
          ...state,
-         openId: action.payload
+         openId: action.payload,
        }
      case SET_INFO:
        return {

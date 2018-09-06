@@ -47,5 +47,8 @@ class Login(Resource):
             db.session.commit()
         return jsonify({
             "code": 0,
-            "data": openId
+            "data": {
+                "openId": openId,
+                "shareNum": 0 if user is None else user.sharedNum
+            }
         })

@@ -25,21 +25,24 @@ export const login = ({userInfo}) => {
     // 更新openId
     dispatch({
       type: LOGIN,
-      payload: data
+      payload: data.openId
     });
+    dispatch({
+      type: UPDATE_SHARE_NUM,
+      payload: data.shareNum
+    })
   }
 }
 
 export const updateShareNum = openId => {
   return async dispatch => {
-    const {code, data, message} = await request({
+    const {code} = await request({
       url: 'update_share_num',
       method: "GET",
       data: {
         openId
       }
     });
-    console.log(code, data, message);
     if(code === 0){
       dispatch({
         type: UPDATE_SHARE_NUM

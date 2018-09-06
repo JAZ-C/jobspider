@@ -133,8 +133,14 @@ export default class Index extends Component {
 
   search = () => {
     const {cityName} = this.state;
+    const {counter: {shareNum}} = this.props;
     if(!cityName){
-      makeToast('请输入城市名称');
+      makeToast('请输入城市名称.');
+      return ;
+    }
+    if(shareNum === 0){
+      makeToast('转发后才可使用哦.');
+      return ;
     }
     Taro.navigateTo({
       url: '/pages/list/index?searchText=' + cityName
@@ -145,18 +151,21 @@ export default class Index extends Component {
     const {showGetUserInfoModal, showInfoImg, cityName} = this.state;
     return (
       <View className='container'>
-        <View className='container-top'>
-          <View className='container-top-btn'>
-            <Button className='forward' open-type='share'>转发</Button>
-            <Button className='forward' onClick={this.showInfoImg.bind(this)}>加入考位分享群</Button>
-          </View>
-          <View className='container-top-search'>
-            <Input value={cityName} onInput={this.getInputText} />
-            <Button onClick={this.search} className='search-btn'>搜索</Button>
-          </View>
-          <View className='extra-txt'>
-            <Text>转发小程序到群即可免费查询</Text>
-          </View>
+        <View className='container-top-btns'>
+          <Button className='ctrl-btn' open-type='share'>
+            <Text className='iconfont icon-xingqiu'></Text>
+            <Text>转发可免费查询</Text>
+          </Button>
+          <View className='divi-line'></View>
+          <Button className='ctrl-btn' onClick={this.showInfoImg.bind(this)}>
+            <Text className='iconfont icon-qunzu'></Text>
+            <Text>加入考位分享群</Text>
+          </Button>
+        </View>
+        <View className='tips'>转发到群里即可免费查询</View>
+        <View className='container-top-search'>
+          <Input className='search-input' placeholder='输入城市...' value={cityName} onInput={this.getInputText} />
+          <Button onClick={this.search} className='search-btn'>查询</Button>
         </View>
         {/* 获取授权弹窗 */}
         {

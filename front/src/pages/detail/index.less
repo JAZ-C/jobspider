@@ -1,33 +1,23 @@
-button::after {
-  border: none;
-}
-
-input {
-  outline: none;
-  border: none;
-  list-style: none;
-}
-
 .container{
-  font-size: 28px;
   background-color: #f3f3f3;
   min-height: 100vh;
-  padding: 20px;
   box-sizing: border-box;
-  .info{
+  padding-top: 1px;
+  .tc_address, 
+  .tc_name, 
+  .tc_phone,
+  .tc_dir{
     background-color: #fff;
-    box-shadow: 5px 5px 30px rgba(0,0,0,.1);
-    margin-bottom: 20px;
-    border-radius: 10px;
-    padding: 10px;
-    &-tc_name{
-      font-weight: 600;
-      margin-bottom: 10px;
+    padding: 30px 20px;
+    margin: 20px 0;
+  }
+  .tc_address{
+    .addr-item{
+      display: block;
+      line-height: 40px;
     }
-    &-tc_address{
-      .addr-item{
-        display: block;
-      }
-    }
+  }
+  .tc_dir{
+    line-height: 40px;
   }
 }

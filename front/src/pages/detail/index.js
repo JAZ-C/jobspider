@@ -15,20 +15,13 @@ export default class Index extends Component {
   }
   
   state = {
-    info: [],
     tc_info: [],
-    cityName: ''
   }
 
   componentDidMount(){
     const {counter: {info}} = this.props;
     const cityName = this.$router.params.cityName;
-    this.setState({
-      info,
-      cityName
-    }, () => {
-      this.fetchData(info, cityName);
-    });
+    this.fetchData(info, cityName);
   }
 
   fetchData = async ([, , info_id, url], cityName) => {
@@ -54,28 +47,24 @@ export default class Index extends Component {
     Taro.hideLoading();
   }
 
-  getDetail = info => {
-    console.log(info);
-  }
-
   render () {
-    const {cityName, info, tc_info} = this.state;
+    const {counter: { info }} = this.props;
+    const {tc_info} = this.state;
     return (
       <View className='container'>
-        <View className='city-name'>{cityName}</View>
+        <View className='tc_name'>{tc_info[0]}</View>
+        <View className='tc_phone'>{tc_info[1]}</View>
         <View className='tc_address'>
           {
-            info[1].map(addr => {
+            (tc_info.length > 0 ? info[1] : []).map(addr => {
               return (
-                <Text key={addr}>{addr}</Text>
+                <Text key={addr} className='addr-item'>{addr}</Text>
               )
             })
           }
         </View>
-        <View className='tc_info'>
-          <View className='tc_name'>{tc_info[0]}</View>
-          <View className='tc_phone'>{tc_info[1]}</View>
-          <View className='tc_dir'>{tc_info[2]}</View>
+        <View className='tc_dir'>
+          {tc_info[2]}
         </View>
       </View>
     )
