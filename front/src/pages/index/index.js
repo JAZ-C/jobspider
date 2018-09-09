@@ -26,12 +26,34 @@ export default class Index extends Component {
   state = {
     showGetUserInfoModal: false, // 获取用户信息弹窗
     showInfoImg: false, //分享二维码
-    cityName: ''
+    cityName: '',
+    hotList: [
+    {
+      country: 'Australia',
+      cities: [
+        "Sydney",
+        "Melbourne",
+        "Brisbane",
+        "Canberra",
+        "Tasmania"
+      ]
+    },{
+      country: 'China',
+      cities: [
+        "Beijing",
+        "Shanghai",
+        "Guangzhou"
+      ]
+    }
+  ]
   }
+
 
   componentDidMount(){
     this.getUserInfo();
-    Taro.showLoading();
+    Taro.showLoading({
+      title: '加载中...'
+    });
   }
 
   componentWillReceiveProps({counter: openId}){
@@ -147,8 +169,14 @@ export default class Index extends Component {
     });
   }
 
+  searchFromHotCity = cityName => {
+    this.setState({
+      cityName
+    }, this.search);
+  }
+
   render () {
-    const {showGetUserInfoModal, showInfoImg, cityName} = this.state;
+    const {showGetUserInfoModal, showInfoImg, cityName, hotList} = this.state;
     return (
       <View className='container'>
         <View className='container-top-btns'>
@@ -166,6 +194,26 @@ export default class Index extends Component {
         <View className='container-top-search'>
           <Input className='search-input' placeholder='输入城市...' value={cityName} onInput={this.getInputText} />
           <Button onClick={this.search} className='search-btn'>查询</Button>
+          <View className='hot-city'>
+            {
+              hotList.map(list => {
+                return (
+                  <View className='hot-container' key={list.country}>
+                    <View className='hot-country'>{list.country}</View>
+                    <View className='hot-cities'>
+                      {
+                        list.cities.map(city => {
+                          return (
+                            <Button onClick={this.searchFromHotCity.bind(this, city)} className='hot-city' key={city}>{city}</Button>
+                          )
+                        })
+                      }
+                    </View>
+                  </View>
+                )
+              })
+            }
+          </View>
         </View>
         {/* 获取授权弹窗 */}
         {

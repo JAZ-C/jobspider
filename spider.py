@@ -145,12 +145,15 @@ class Spider:
 
     def searchList(self, address):
         self.login()
+        if not self.searchform:
+            return {}
         action = self.searchform['action']
         key = self.searchform.find(id="javax.faces.ViewState")["value"]
+        locationInfo = self.getLocationInfo(address)
         data = {
-          "geoCodeLatitude": 31.2303904,
-          "geoCodeLongitude": 121.47370209999997,
-          "geoCodeTwoCharCountryCode": "CN",
+          "geoCodeLatitude": locationInfo["location"]["lat"],
+          "geoCodeLongitude": locationInfo["location"]["lng"],
+          "geoCodeTwoCharCountryCode": locationInfo["code"],
           "ambiguousSearchResult": "",
           "mapAvailable": True,
           "uiSearchSelected": True,
@@ -193,6 +196,23 @@ class Spider:
         tc_all = [tc_name, tc_phone, tc_dir]
         tc_info = {"tc_info": tc_all}
         return tc_info
+    
+    """
+    根据获取城市详情
+    """
+    @retry(stop_max_attempt_number=3)
+    def getLocationInfo(self, address):
+        # googleMapUrl = "http://maps.googleapis.cn/maps/api/geocode/json?address=" + address # 需要翻墙
+        googleMapUrl = "http://ditu.google.cn/maps/api/geocode/json?language=zh-CN?&address=" + address  # 不需要翻墙
+        results = requests.get(googleMapUrl, timeout=10).json()["results"][0]
+        result = {}
+        for area in results["address_components"]:
+            if 'country' in area["types"]:
+                result["code"] = area["short_name"]
+                break
+        
+        result["location"] = results["geometry"]["location"]
+        return result
 
 
 if __name__ == "__main__":

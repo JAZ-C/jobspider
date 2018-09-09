@@ -11,7 +11,7 @@ export default (state = INITIAL_STATE, action) => {
     case UPDATE_SHARE_NUM:
       return {
         ...state,
-        shareNum: action.payload || state.shareNum + 1
+        shareNum: "undefined" === action.payload ? state.shareNum + 1 : action.payload
       }
      case LOGIN:
        return {

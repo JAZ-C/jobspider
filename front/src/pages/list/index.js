@@ -18,7 +18,7 @@ import './index.less'
 ))
 export default class Index extends Component {
   config = {
-    navigationBarTitleText: '考位列表'
+    navigationBarTitleText: '考位列表',
   }
 
   state = {
@@ -47,7 +47,9 @@ export default class Index extends Component {
         infoList: res[cityName]
       });
     }
-    Taro.hideLoading();
+    setTimeout(() => {
+      Taro.hideLoading();
+    }, 1000);
   }
 
   getDetail = (info, cityName) => {
