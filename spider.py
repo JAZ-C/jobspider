@@ -203,6 +203,7 @@ class Spider:
     @retry(stop_max_attempt_number=3)
     def getLocationInfo(self, address):
         # googleMapUrl = "http://maps.googleapis.cn/maps/api/geocode/json?address=" + address # 需要翻墙
+        # https://maps.googleapis.com/maps/api/geocode/json?address=shanghai+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4
         googleMapUrl = "http://ditu.google.cn/maps/api/geocode/json?language=zh-CN?&address=" + address  # 不需要翻墙
         results = requests.get(googleMapUrl, timeout=10).json()["results"][0]
         result = {}
