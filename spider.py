@@ -61,9 +61,9 @@ class Spider:
         headers["Referer"] = "https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE"
         try:
             try_proxy = IpProxy().http_proxy
-            try_proxys = IpProxy().https_proxy
+            # try_proxys = IpProxy().https_proxy
             try_proxies = {
-                "https": "https://{}".format(try_proxys),
+                # "https": "https://{}".format(try_proxys),
                 "http": "http://{}".format(try_proxy)
             }
             IpProxy().delete_proxy(try_proxy.split(":")[0])
