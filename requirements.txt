@@ -8,3 +8,4 @@ flask-script
 flask_migrate
 flask_redis
 pymysql
+uwsgi
