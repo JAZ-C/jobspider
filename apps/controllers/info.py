@@ -2,7 +2,6 @@ from flask_restful import Resource, reqparse
 from flask import jsonify, request
 from spider import Spider
 from apps import db, redis_store
-from models.yasi_info import YasiInfo
 from models.user import User
 
 parser = reqparse.RequestParser()
