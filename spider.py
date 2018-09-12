@@ -72,7 +72,8 @@ class Spider:
             self.proxies = try_proxies
             soup = BeautifulSoup(res.text, 'html.parser')
             url = soup.select('#examCatalogContainer a')[0]['href']
-            self.fetch_dashboard(url)
+            # self.fetch_dashboard(url)
+            return url
         except Exception as e:
             print(e)
 
@@ -83,7 +84,8 @@ class Spider:
         key = form.find(id="javax.faces.ViewState")["value"]
         id = form["id"]
         action = form["action"]
-        self.getProvideAnswers(id, key, url, action)
+        # self.getProvideAnswers(id, key, url, action)
+        return id, key, url, action
 
     def getProvideAnswers(self, id, key, url, action):
         data = {
@@ -98,7 +100,8 @@ class Spider:
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.find(id='examRegistrationQuestionsForm')
-        self.getSearchPage(form, url)
+        # self.getSearchPage(form, url)
+        return form, url
 
     def getSearchPage(self, form, url):
         action = form["action"]
@@ -138,18 +141,19 @@ class Spider:
         headers = self.headers
         headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        # print(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.find(id="testCenterFormId")
-        self.searchform = form
-        self.searchurl = url
+        # self.searchform = form
+        # self.searchurl = url
         return form, url
 
-    def searchList(self, address):
-        self.login()
-        if not self.searchform:
+    def searchList(self, form, url, address):
+        # self.login()
+        if not form:
             return {}
-        action = self.searchform['action']
-        key = self.searchform.find(id="javax.faces.ViewState")["value"]
+        action = form['action']
+        key = form.find(id="javax.faces.ViewState")["value"]
         locationInfo = self.getLocationInfo(address)
         data = {
           "geoCodeLatitude": locationInfo["location"]["lat"],
@@ -161,49 +165,54 @@ class Spider:
           "testCenterCode": "",
           "fullAddress": address,
           "testCenterSearch": "Search",
+          "selectedDistanceUnit": 0,
+          "unitVal": "mi",
           "testCenterFormId_SUBMIT": 1,
           "javax.faces.ViewState": key
         }
         headers = self.headers
-        headers['Referer'] = self.baseUrl + self.searchurl
+        # print(url)
+        # headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        print(self.searchurl)
-        self.searchform = soup.find(id="testCenterFormId")
+        form = soup.find(id="testCenterFormId")
+        datekey = form.find(id="javax.faces.ViewState")["value"]
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
         tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
         tc_href_list = [x.a['href'].strip() for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_id = [x.a['id'].split("_")[1] for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_info = list(zip(tc_name_list, tc_address, tc_id, tc_href_list))
-        return tc_info
+        return tc_info, datekey, locationInfo
 
-    def getSearchDate(self):
-        self.searchList('beijing')
-        key = self.searchform.find(id="javax.faces.ViewState")["value"]
+    def getSearchDate(self,address, datekey, locationInfo, date=None):
         searchurl = "/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
-        try_proxy = IpProxy().http_proxy
-        # try_proxys = IpProxy().https_proxy
-        try_proxies = {
-            # "https": "https://{}".format(try_proxys),
-            "http": "http://{}".format(try_proxy)
-        }
-        # data = {
-        #     "geoCodeLatitude": 39.90419989999999,
-        #     "geoCodeLongitude": 116.40739630000007,
-        #     "geoCodeTwoCharCountryCode": 'CN',
-        #     "ambiguousSearchResult": "",
-        #     "mapAvailable": True,
-        #     "uiSearchSelected": True,
-        #     "testCenterCode": "",
-        #     "fullAddress": "beijing",
-        #     "selectedTestCenters": 50488,
-        #     "selectedDistanceUnit": 0,
-        #     "unitVal": "mi",
-        #     "continueTop": "Next",
-        #     "testCenterFormId_SUBMIT": 1,
-        #     "javax.faces.ViewState": key
-        # }
         data = {
+            "geoCodeLatitude": locationInfo["location"]["lat"],
+            "geoCodeLongitude": locationInfo["location"]["lng"],
+            "geoCodeTwoCharCountryCode": locationInfo["code"],
+            "ambiguousSearchResult": "",
+            "mapAvailable": True,
+            "uiSearchSelected": True,
+            "testCenterCode": "",
+            "fullAddress": address,
+            "selectedTestCenters": 50488,
+            "selectedDistanceUnit": 0,
+            "unitVal": "mi",
+            "continueTop": "Next",
+            "testCenterFormId_SUBMIT": 1,
+            "javax.faces.ViewState": datekey
+        }
+
+        headers = self.headers
+        headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
+        res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        # print(res.text)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        jd_id = soup.select_one('script[id]').get('id')
+        key = soup.find(id="javax.faces.ViewState")["value"]
+
+        date_data = {
+            "AJAXREQUEST": "_viewRoot",
             "calendarForm:calendarMonth": "Month",
             "calendarForm:calendarDay": "Day",
             "calendarForm:apptdates": "Select one...",
@@ -211,22 +220,28 @@ class Spider:
             "calendarForm": "calendarForm",
             "autoScroll": "",
             "javax.faces.ViewState": key,
-            "month": 9,
-            "year": 2018
-
+            "month": date.get('month'),
+            "year": date.get('year'),
+            "AJAX:EVENTS_COUNT": 1
         }
+        date_data[jd_id] = jd_id
+        print(date_data)
+        next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
+        # headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
+        res = self.session.post(self.baseUrl + next_url, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        return res.text
 
-        headers = self.headers
-        headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE/112129"
-        res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=try_proxies, timeout=50)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        jd_id = soup.select_one('script[id]').get('id')
-        print(res.text)
-        # file = open('pages/test.html', 'w')
-        # file.write(res.text.replace(u'\xa0 ', u' '))
-        # file.close()
-        # return soup
-
+    def doSearchData(self, address, date=None):
+        fetch_url = self.login()
+        id, key, url ,action = self.fetch_dashboard(fetch_url)
+        form, url = self.getProvideAnswers(id, key, url, action)
+        list_form, list_url = self.getSearchPage(form, url)
+        tc_info, datekey, locationInfo = self.searchList(list_form, list_url, address)
+        if not date:
+            return tc_info
+        else:
+            rv_info = self.getSearchDate(address, datekey, locationInfo, date)
+            return rv_info
 
 
 
@@ -274,4 +289,4 @@ class Spider:
 
 
 if __name__ == "__main__":
-    print(Spider().getSearchDate())
+    print(Spider().doSearchData('shanghai', {'month': 9, 'year': 2018}))
