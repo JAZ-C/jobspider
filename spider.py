@@ -142,6 +142,7 @@ class Spider:
         form = soup.find(id="testCenterFormId")
         self.searchform = form
         self.searchurl = url
+        return form, url
 
     def searchList(self, address):
         self.login()
@@ -167,12 +168,67 @@ class Spider:
         headers['Referer'] = self.baseUrl + self.searchurl
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
+        print(self.searchurl)
+        self.searchform = soup.find(id="testCenterFormId")
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
         tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
         tc_href_list = [x.a['href'].strip() for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_id = [x.a['id'].split("_")[1] for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_info = list(zip(tc_name_list, tc_address, tc_id, tc_href_list))
         return tc_info
+
+    def getSearchDate(self):
+        self.searchList('beijing')
+        key = self.searchform.find(id="javax.faces.ViewState")["value"]
+        searchurl = "/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
+        try_proxy = IpProxy().http_proxy
+        # try_proxys = IpProxy().https_proxy
+        try_proxies = {
+            # "https": "https://{}".format(try_proxys),
+            "http": "http://{}".format(try_proxy)
+        }
+        # data = {
+        #     "geoCodeLatitude": 39.90419989999999,
+        #     "geoCodeLongitude": 116.40739630000007,
+        #     "geoCodeTwoCharCountryCode": 'CN',
+        #     "ambiguousSearchResult": "",
+        #     "mapAvailable": True,
+        #     "uiSearchSelected": True,
+        #     "testCenterCode": "",
+        #     "fullAddress": "beijing",
+        #     "selectedTestCenters": 50488,
+        #     "selectedDistanceUnit": 0,
+        #     "unitVal": "mi",
+        #     "continueTop": "Next",
+        #     "testCenterFormId_SUBMIT": 1,
+        #     "javax.faces.ViewState": key
+        # }
+        data = {
+            "calendarForm:calendarMonth": "Month",
+            "calendarForm:calendarDay": "Day",
+            "calendarForm:apptdates": "Select one...",
+            "selectedAppointmentId": "",
+            "calendarForm": "calendarForm",
+            "autoScroll": "",
+            "javax.faces.ViewState": key,
+            "month": 9,
+            "year": 2018
+
+        }
+
+        headers = self.headers
+        headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE/112129"
+        res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=try_proxies, timeout=50)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        jd_id = soup.select_one('script[id]').get('id')
+        print(res.text)
+        # file = open('pages/test.html', 'w')
+        # file.write(res.text.replace(u'\xa0 ', u' '))
+        # file.close()
+        # return soup
+
+
+
 
     def get_tcinfo(self, id, url):
         try_proxy = IpProxy().http_proxy
@@ -186,7 +242,7 @@ class Spider:
             "clientCode": "PEARSONLANGUAGE"
         }
         res = self.session.get(self.baseUrl + url, data=data, headers=self.headers, proxies=try_proxies)
-        file = open('./test.html', 'w')
+        file = open('pages/test.html', 'w')
         file.write(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         tc_name = soup.find(class_="tc_name").text.strip()
@@ -218,4 +274,4 @@ class Spider:
 
 
 if __name__ == "__main__":
-    print(Spider().searchList('beijing'))
+    print(Spider().getSearchDate())
