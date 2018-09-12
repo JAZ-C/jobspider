@@ -204,7 +204,8 @@ class Spider:
     def getLocationInfo(self, address):
         # googleMapUrl = "http://maps.googleapis.cn/maps/api/geocode/json?address=" + address # 需要翻墙
         # https://maps.googleapis.com/maps/api/geocode/json?address=shanghai+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4
-        googleMapUrl = "https://ditu.google.cn/maps/api/geocode/json?language=zh-CN?&address=" + address + "+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4"  # 不需要翻墙
+        # googleMapUrl = "https://ditu.google.cn/maps/api/geocode/json?language=zh-CN?&address=" + address + "+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4"  # 不需要翻墙
+        googleMapUrl = "https://ditu.google.cn/maps/api/geocode/json?language=zh-CN?&address=" + address + "&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4"
         results = requests.get(googleMapUrl, timeout=10).json()["results"][0]
         result = {}
         for area in results["address_components"]:
@@ -217,4 +218,4 @@ class Spider:
 
 
 if __name__ == "__main__":
-    print(Spider().searchList('shanghai'))
+    print(Spider().searchList('beijing'))
