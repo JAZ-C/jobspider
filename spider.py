@@ -50,9 +50,13 @@ class Spider:
 
     @retry(stop_max_attempt_number=3)
     def login(self):
+        """
+        执行登录
+        :return: 下一级页面登录url
+        """
         data = {
-            "inputUserName": "wq12345",
-            "inputPassword": "ceshiMIMA123../",
+            "inputUserName": "yuqing2132",
+            "inputPassword": "youNI2132",
             "submitButton": "Sign In",
             "SignInForm_SUBMIT": 1,
             "javax.faces.ViewState": self.key
@@ -84,7 +88,6 @@ class Spider:
         key = form.find(id="javax.faces.ViewState")["value"]
         id = form["id"]
         action = form["action"]
-        # self.getProvideAnswers(id, key, url, action)
         return id, key, url, action
 
     def getProvideAnswers(self, id, key, url, action):
@@ -100,7 +103,6 @@ class Spider:
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.find(id='examRegistrationQuestionsForm')
-        # self.getSearchPage(form, url)
         return form, url
 
     def getSearchPage(self, form, url):
@@ -141,15 +143,17 @@ class Spider:
         headers = self.headers
         headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
-        # print(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.find(id="testCenterFormId")
-        # self.searchform = form
-        # self.searchurl = url
-        return form, url
+        return form
 
-    def searchList(self, form, url, address):
-        # self.login()
+    def searchList(self, form, address):
+        """
+        查询具体地址列表
+        :param form:    上一级页面表单
+        :param address: 搜索地点 "e.g : beijing"
+        :return:
+        """
         if not form:
             return {}
         action = form['action']
@@ -171,8 +175,6 @@ class Spider:
           "javax.faces.ViewState": key
         }
         headers = self.headers
-        # print(url)
-        # headers['Referer'] = self.baseUrl + url
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.find(id="testCenterFormId")
@@ -184,7 +186,18 @@ class Spider:
         tc_info = list(zip(tc_name_list, tc_address, tc_id, tc_href_list))
         return tc_info, datekey, locationInfo
 
-    def getSearchDate(self,address, datekey, locationInfo, date=None):
+    def getSearchDate(self,address, datekey, locationInfo, search_data):
+        """
+        查询具体地址可用日期
+        address: 查询地点 "e.g :beijing"
+        datekey: 上一级网页中的javax.faces.ViewState
+        loacationInfo: 查询地点的地图信息
+        search_data: 查询信息dict;
+                     search_data['id'] 具体查询地址ID "e.g : 50488"
+                     search_data['month'] 具体查询月份  "e.g : 9"
+                     search_data['year'] 具体查询年份  "e.g : 2018"
+        :return:
+        """
         searchurl = "/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
         data = {
             "geoCodeLatitude": locationInfo["location"]["lat"],
@@ -195,7 +208,7 @@ class Spider:
             "uiSearchSelected": True,
             "testCenterCode": "",
             "fullAddress": address,
-            "selectedTestCenters": 50488,
+            "selectedTestCenters": search_data.get('id'),
             "selectedDistanceUnit": 0,
             "unitVal": "mi",
             "continueTop": "Next",
@@ -206,12 +219,37 @@ class Spider:
         headers = self.headers
         headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
         res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=self.proxies, timeout=50)
-        # print(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         jd_id = soup.select_one('script[id]').get('id')
         key = soup.find(id="javax.faces.ViewState")["value"]
 
-        date_data = {
+        if not search_data.get('datetime'):
+            date_data = {
+                "AJAXREQUEST": "_viewRoot",
+                "calendarForm:calendarMonth": "Month",
+                "calendarForm:calendarDay": "Day",
+                "calendarForm:apptdates": "Select one...",
+                "selectedAppointmentId": "",
+                "calendarForm": "calendarForm",
+                "autoScroll": "",
+                "javax.faces.ViewState": key,
+                "month": search_data.get('month'),
+                "year": search_data.get('year'),
+                "AJAX:EVENTS_COUNT": 1
+            }
+            date_data[jd_id] = jd_id
+            next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
+            headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
+            res = self.session.post(self.baseUrl + next_url, data=date_data, headers=headers, proxies=self.proxies, timeout=50)
+            soup = BeautifulSoup(res.text, 'html.parser')
+            date_list = [x.get('value') for x in soup.select('option')][2:-1]
+            return date_list
+        else:
+            return key
+
+    def doSearchDateTime(self, key, search_data):
+        search_url = ""
+        data = {
             "AJAXREQUEST": "_viewRoot",
             "calendarForm:calendarMonth": "Month",
             "calendarForm:calendarDay": "Day",
@@ -220,28 +258,25 @@ class Spider:
             "calendarForm": "calendarForm",
             "autoScroll": "",
             "javax.faces.ViewState": key,
-            "month": date.get('month'),
-            "year": date.get('year'),
+            "selectedDate": search_data.get('datetime'),
+            "ajaxSingle": "", #TODO: j_idxxx
             "AJAX:EVENTS_COUNT": 1
         }
-        date_data[jd_id] = jd_id
-        print(date_data)
-        next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
-        # headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
-        res = self.session.post(self.baseUrl + next_url, data=data, headers=headers, proxies=self.proxies, timeout=50)
-        return res.text
 
-    def doSearchData(self, address, date=None):
+    def doSearchData(self, address, search_data=None):
         fetch_url = self.login()
         id, key, url ,action = self.fetch_dashboard(fetch_url)
         form, url = self.getProvideAnswers(id, key, url, action)
-        list_form, list_url = self.getSearchPage(form, url)
-        tc_info, datekey, locationInfo = self.searchList(list_form, list_url, address)
-        if not date:
+        list_form = self.getSearchPage(form, url)
+        tc_info, datekey, locationInfo = self.searchList(list_form, address)
+        if not search_data:
             return tc_info
-        else:
-            rv_info = self.getSearchDate(address, datekey, locationInfo, date)
+        elif not search_data.get('datetime'):
+            rv_info = self.getSearchDate(address, datekey, locationInfo, search_data)
             return rv_info
+        else:
+            datetime_key = self.getSearchDate(address, datekey, locationInfo, search_data)
+
 
 
 
@@ -289,4 +324,4 @@ class Spider:
 
 
 if __name__ == "__main__":
-    print(Spider().doSearchData('shanghai', {'month': 9, 'year': 2018}))
+    print(Spider().doSearchData('shanghai', {'month': 9, 'year': 2018, 'id': 62809}))
