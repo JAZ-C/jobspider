@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro';
 
-export const baseUrl = "http://144.202.125.51:5000/";
+export const baseUrl = "https://www.28ty.cn/";
 // export const baseUrl = "http://192.168.199.159:5000/";
 
 export const makeToast = title => {
