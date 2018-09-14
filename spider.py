@@ -242,7 +242,9 @@ class Spider:
             headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
             res = self.session.post(self.baseUrl + next_url, data=date_data, headers=headers, proxies=self.proxies, timeout=50)
             new_soup = BeautifulSoup(res.text, 'html.parser')
-            date_list = [x.get('value') for x in new_soup.select('option')][2:-1]
+            date_list = re.findall(r'availableDates\\":\[\\"(.*?)}', new_soup.select_one('span[id="_ajax:data"]').text)[0].\
+                replace('\\\"','').replace('\\x5D','').split(',')
+            # date_list = [x.get('value') for x in new_soup.select('option')][2:-1] #被遗弃的方法，有点小缺陷
             return date_list
         else:
             return key, soup
@@ -315,12 +317,11 @@ class Spider:
         tc_all = [tc_name, tc_phone, tc_dir]
         tc_info = {"tc_info": tc_all}
         return tc_info
-    
-    """
-    根据获取城市详情
-    """
-    # @retry(stop_max_attempt_number=3)
+
     def getLocationInfo(self, address):
+        """
+        获取城市详情
+        """
         # googleMapUrl = "http://maps.googleapis.cn/maps/api/geocode/json?address=" + address # 需要翻墙
         # https://maps.googleapis.com/maps/api/geocode/json?address=shanghai+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4
         # googleMapUrl = "https://ditu.google.cn/maps/api/geocode/json?language=zh-CN?&address=" + address + "+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyDSCL2P-emde6kzlSMLTr2YWs009yGKyU4"  # 不需要翻墙
