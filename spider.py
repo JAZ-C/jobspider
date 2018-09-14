@@ -241,14 +241,18 @@ class Spider:
             next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
             headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
             res = self.session.post(self.baseUrl + next_url, data=date_data, headers=headers, proxies=self.proxies, timeout=50)
-            soup = BeautifulSoup(res.text, 'html.parser')
-            date_list = [x.get('value') for x in soup.select('option')][2:-1]
+            new_soup = BeautifulSoup(res.text, 'html.parser')
+            date_list = [x.get('value') for x in new_soup.select('option')][2:-1]
             return date_list
         else:
-            return key
+            return key, soup
 
-    def doSearchDateTime(self, key, search_data):
-        search_url = ""
+    def getSearchDateTime(self, key, soup, search_data):
+        search_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
+        j_id_list = soup.select('script[id]')
+        j_id = ""
+        for j in j_id_list:
+            j_id = re.findall(r"ajaxSingle':'(.*?)'}", j.text)[0] if re.findall(r"ajaxSingle':'(.*?)'}", j.text) else j_id
         data = {
             "AJAXREQUEST": "_viewRoot",
             "calendarForm:calendarMonth": "Month",
@@ -259,23 +263,32 @@ class Spider:
             "autoScroll": "",
             "javax.faces.ViewState": key,
             "selectedDate": search_data.get('datetime'),
-            "ajaxSingle": "", #TODO: j_idxxx
+            "ajaxSingle": j_id,
             "AJAX:EVENTS_COUNT": 1
         }
+        data[j_id] = j_id
+        headers = self.headers
+        headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
+        res = self.session.post(self.baseUrl + search_url, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        time_info = re.findall(r'startTimeFormatted\\": \\"(.*?)\\"}', soup.select_one('span[id="_ajax:data"]').text)
+        return time_info
 
     def doSearchData(self, address, search_data=None):
         fetch_url = self.login()
         id, key, url ,action = self.fetch_dashboard(fetch_url)
         form, url = self.getProvideAnswers(id, key, url, action)
         list_form = self.getSearchPage(form, url)
-        tc_info, datekey, locationInfo = self.searchList(list_form, address)
+        rv_info, datekey, locationInfo = self.searchList(list_form, address)
         if not search_data:
-            return tc_info
+            return rv_info
         elif not search_data.get('datetime'):
             rv_info = self.getSearchDate(address, datekey, locationInfo, search_data)
             return rv_info
         else:
-            datetime_key = self.getSearchDate(address, datekey, locationInfo, search_data)
+            datetime_key, soup = self.getSearchDate(address, datekey, locationInfo, search_data)
+            rv_info = self.getSearchDateTime(datetime_key, soup, search_data)
+            return rv_info
 
 
 
@@ -324,4 +337,4 @@ class Spider:
 
 
 if __name__ == "__main__":
-    print(Spider().doSearchData('shanghai', {'month': 9, 'year': 2018, 'id': 62809}))
+    print(Spider().doSearchData('beijing', {'month': 9, 'year': 2018, 'id': 50488, 'datetime': '10/16/2018'}))
