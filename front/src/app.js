@@ -16,12 +16,19 @@ class App extends Component {
       'pages/index/index',
       'pages/list/index',
       'pages/detail/index',
+      'pages/dates/index',
     ],
     window: {
       backgroundTextStyle: 'light',
       navigationBarBackgroundColor: '#fff',
       navigationBarTitleText: 'WeChat',
       navigationBarTextStyle: 'black'
+    },
+    plugins: {
+      calendar: {
+          version: "1.1.3",
+          provider: "wx92c68dae5a8bb046"
+      }
     }
   }
 

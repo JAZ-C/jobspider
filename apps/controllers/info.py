@@ -68,6 +68,7 @@ class Info(Resource):
         redis_key = address + info_id + "_" + search_month+ "_" + search_year if not search_datetime \
             else address + info_id + "_" + search_datetime
         rv = redis_store.get(redis_key)
+        code = 200
         if not rv:
             try:
                 rv = self.sp.doSearchData(address, search_data)
@@ -75,10 +76,11 @@ class Info(Resource):
                 redis_store.expire(redis_key, 1296000) #设置过期时间为15天
             except Exception as e:
                 print(e)
-                rv = {
-                    "code": 500,
-                    "msg": "Get Address Info fail"
-                }
+                code = 500
+                rv = []
         else:
             rv = eval(rv)
-        return jsonify(rv)
+        return jsonify({
+            "code": code,
+            "data": rv
+        })

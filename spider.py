@@ -72,11 +72,14 @@ class Spider:
             }
             IpProxy().delete_proxy(try_proxy.split(":")[0])
             res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
+            file = open('./test.html', 'w')
+            file.write(res.text)
             self.http_proxy = try_proxy
             self.proxies = try_proxies
             soup = BeautifulSoup(res.text, 'html.parser')
             url = soup.select('#examCatalogContainer a')[0]['href']
             # self.fetch_dashboard(url)
+            print("url", url)
             return url
         except Exception as e:
             print(e)
@@ -272,6 +275,8 @@ class Spider:
         headers = self.headers
         headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
         res = self.session.post(self.baseUrl + search_url, data=data, headers=headers, proxies=self.proxies, timeout=50)
+        file = open('./test.html', 'w')
+        file.write(res.text)
         soup = BeautifulSoup(res.text, 'html.parser')
         time_info = re.findall(r'startTimeFormatted\\": \\"(.*?)\\"}', soup.select_one('span[id="_ajax:data"]').text)
         return time_info
