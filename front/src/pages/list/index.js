@@ -22,6 +22,7 @@ export default class Index extends Component {
   }
 
   state = {
+    firstLoad: true,
     cityName: '',
     infoList: []
   }
@@ -44,6 +45,7 @@ export default class Index extends Component {
     });
     if(res.code === 200){
       this.setState({
+        firstLoad: false,
         infoList: res[cityName]
       });
     }
@@ -61,11 +63,16 @@ export default class Index extends Component {
   }
 
   render () {
-    const {infoList, cityName} = this.state;
+    const {infoList, cityName, firstLoad} = this.state;
     return (
       <View className='container'>
         {
-          infoList ? infoList.map(info => (
+          (infoList.length === 0 && !firstLoad) ? (
+            <View className='no-data'>没有数据.</View>
+          ) : null
+        }
+        {
+          (infoList.length > 0) ? infoList.map(info => (
             <View className='info' key={info[2]} onClick={this.getDetail.bind(this, info, cityName)}>
               <View className='info-tc_name'>
                 <Text>{info[0]}</Text>
