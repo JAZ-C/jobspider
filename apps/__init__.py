@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from config import Config
 
 
-db = SQLAlchemy()
+
 redis_store = FlaskRedis()
 api = Api()
 migrate = Migrate()
@@ -19,7 +19,7 @@ migrate = Migrate()
 app = Flask(__name__, static_folder='../static')
 
 app.config.from_object(Config)
-db.init_app(app)
+db = SQLAlchemy(app)
 redis_store.init_app(app, decode_responses=True)
 migrate.init_app(app, db)
 
