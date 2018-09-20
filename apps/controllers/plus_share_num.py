@@ -14,7 +14,8 @@ class PlusShareNum(Resource):
               "code": -1,
               "message": '操作失败'
             })
-        user.sharedNum = user.sharedNum + 1
+        # user.sharedNum = user.sharedNum + 1
+        user.sharedNum = 1
         db.session.commit()
         return jsonify({
           "code": 0,
