@@ -22,12 +22,14 @@ export default class Index extends Component {
     times: [],
     dates: [],
     currentMonth: 0,
-    currentYear: 0
+    currentYear: 0,
+    dataMonth: 1
   }
 
   componentDidMount(){
     const {years, months} = moment().toObject();
     this.setState({
+      dataMonth: months + 1,
       currentMonth: months + 1,
       currentYear: years
     }, this.fetchData);
@@ -40,21 +42,28 @@ export default class Index extends Component {
     Taro.showLoading({
       title: "加载中..."
     });
-    const res = await request({
-      url: `info/${cityName}`,
-      data: {
-        info_id,
-        openId,
-        search_year: currentYear,
-        search_month: currentMonth
-      },
-      method: 'POST'
-    });
-    if(res.code === 200){
-      console.log(res);
-      this.setState({
-        dates: res.data
+    try {
+      const res = await request({
+        url: `info/${cityName}`,
+        data: {
+          info_id,
+          openId,
+          search_year: currentYear,
+          search_month: currentMonth
+        },
+        method: 'POST'
       });
+      if(res.code === 200){
+        let hasDate = res.data.length > 0;
+        this.setState(Object.assign({
+          dates: res.data,
+        }, hasDate ? {
+          dataMonth: res.data[0].split('/')[0],
+          currentMonth: res.data[0].split('/')[0],
+        }: {}));
+      }
+    } catch (error) {
+      // pass
     }
     Taro.hideLoading();
   }
@@ -97,18 +106,26 @@ export default class Index extends Component {
   }
 
   changeMonth = ({detail: {currentMonth, currentYear}}) => {
+    const {dates} = this.state;
+    // 如果有这个月的日期
+    if(dates.find(day => {
+      return +day.split('/')[0] === +currentMonth
+    })){
+      return ;
+    }
     this.setState({
       currentMonth,
+      dataMonth: currentMonth,
       currentYear
     }, this.fetchData);
   }
 
   render () {
     const {counter: { info }} = this.props;
-    const {dates, currentMonth, currentYear, times} = this.state;
+    const {dates, currentMonth, currentYear, times, dataMonth} = this.state;
     const daysColor = (dates||[]).filter(d => {
       const [mon, , year] = d.split('/');
-      return +mon === currentMonth && +year === currentYear
+      return +mon === +currentMonth && +year === +currentYear
     }).map(day => {
       return {
         month: 'current',
@@ -139,6 +156,7 @@ export default class Index extends Component {
             header-style='cal-header' 
             board-style='cal-board' 
             weeks-type='cn'
+            month={dataMonth}
             days-color={daysColor}
             binddayClick='dayClick' 
             bindnextMonth='changeMonth' 

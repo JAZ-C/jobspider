@@ -30,9 +30,9 @@ class Info(Resource):
                 redis_store.expire(address, 1296000) #设置过期时间为15天
                 rv = {address: results}
                 rv["code"] = 200
-                user.sharedNum = (user.sharedNum - 1) if user.sharedNum > 1 else 0
-                db.session.add(user)
-                db.session.commit()
+                # user.sharedNum = (user.sharedNum - 1) if user.sharedNum > 1 else 0
+                # db.session.add(user)
+                # db.session.commit()
             except Exception as e:
                 print(e)
                 rv = {
