@@ -43,12 +43,15 @@ class Spider:
 
     @property
     def key(self):
-        res = self.session.get(self.fullUrl)
+        res = self.session.get(self.fullUrl, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
-        key = soup.find(id="javax.faces.ViewState")["value"]
+        print(1111)
+        file = open('./aa.html', 'w')
+        file.write(res.text);
+        key = soup.select("#SignInForm input[name='javax.faces.ViewState']")[0]["value"]
         return key
 
-    @retry(stop_max_attempt_number=3)
+    # @retry(stop_max_attempt_number=3)
     def login(self):
         """
         执行登录
@@ -63,32 +66,33 @@ class Spider:
         }
         headers = self.headers
         headers["Referer"] = "https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE"
-        try:
-            try_proxy = IpProxy().http_proxy
-            # try_proxys = IpProxy().https_proxy
-            try_proxies = {
-                # "https": "https://{}".format(try_proxys),
-                "http": "http://{}".format(try_proxy)
-            }
-            IpProxy().delete_proxy(try_proxy.split(":")[0])
-            res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
-            file = open('./test.html', 'w')
-            file.write(res.text)
-            self.http_proxy = try_proxy
-            self.proxies = try_proxies
-            soup = BeautifulSoup(res.text, 'html.parser')
-            url = soup.select('#examCatalogContainer a')[0]['href']
-            # self.fetch_dashboard(url)
-            print("url", url)
-            return url
-        except Exception as e:
-            print(e)
+        # try:
+        try_proxy = IpProxy().http_proxy
+        # try_proxys = IpProxy().https_proxy
+        try_proxies = {
+            # "https": "https://{}".format(try_proxys),
+            "http": "http://{}".format(try_proxy)
+        }
+        IpProxy().delete_proxy(try_proxy.split(":")[0])
+        res = self.session.post(url=self.fullUrl, data=data, headers=headers, proxies=try_proxies, timeout=50)
+        file = open('./test.html', 'w')
+        file.write(res.text)
+        self.http_proxy = try_proxy
+        self.proxies = try_proxies
+        soup = BeautifulSoup(res.text, 'html.parser')
+        url = soup.select('#examCatalogContainer a')[0]['href']
+        self.conversationId = url.split('=')[-1]
+        # self.fetch_dashboard(url)
+        print("url", url)
+        return url
+        # except Exception as e:
+        #     print(e)
 
     def fetch_dashboard(self, url):
         res = self.session.get(self.baseUrl + url, headers=self.headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.select("#maincontent form")[0]
-        key = form.find(id="javax.faces.ViewState")["value"]
+        key = form.select("input[name='javax.faces.ViewState']")[0]["value"]
         id = form["id"]
         action = form["action"]
         return id, key, url, action
@@ -110,7 +114,7 @@ class Spider:
 
     def getSearchPage(self, form, url):
         action = form["action"]
-        key = form.find(id="javax.faces.ViewState")["value"]
+        key = form.select("input[name='javax.faces.ViewState']")[0]["value"]
         data = {
           "parentQuestionsIds_component1_SELECT_ONE_RADIOBUTTON_3422": "",
           "component1_SELECT_ONE_RADIOBUTTON_3422": 1,
@@ -160,7 +164,7 @@ class Spider:
         if not form:
             return {}
         action = form['action']
-        key = form.find(id="javax.faces.ViewState")["value"]
+        key = form.select("input[name='javax.faces.ViewState']")[0]["value"]
         locationInfo = self.getLocationInfo(address)
         data = {
           "geoCodeLatitude": locationInfo["location"]["lat"],
@@ -181,7 +185,7 @@ class Spider:
         res = self.session.post(self.baseUrl + action, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         form = soup.find(id="testCenterFormId")
-        datekey = form.find(id="javax.faces.ViewState")["value"]
+        datekey = form.select("input[name='javax.faces.ViewState']")[0]["value"]
         tc_name_list = [x.string.strip() for x in soup.select('.tc_name')] if  soup.select('.tc_name') else []
         tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
         tc_href_list = [x.a['href'].strip() for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
@@ -201,7 +205,7 @@ class Spider:
                      search_data['year'] 具体查询年份  "e.g : 2018"
         :return:
         """
-        searchurl = "/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
+        searchurl = "/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE/" + str(search_data.get('id'))
         data = {
             "geoCodeLatitude": locationInfo["location"]["lat"],
             "geoCodeLongitude": locationInfo["location"]["lng"],
@@ -220,11 +224,12 @@ class Spider:
         }
 
         headers = self.headers
-        headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE"
+        headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE?conversationId=" + self.conversationId
+        headers['Upgrade-Insecure-Requests'] = "1"
         res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=self.proxies, timeout=50)
         soup = BeautifulSoup(res.text, 'html.parser')
         jd_id = soup.select_one('script[id]').get('id')
-        key = soup.find(id="javax.faces.ViewState")["value"]
+        key = soup.select("input[name='javax.faces.ViewState']")[0]["value"]
 
         if not search_data.get('datetime'):
             date_data = {
@@ -244,6 +249,8 @@ class Spider:
             next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
             headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
             res = self.session.post(self.baseUrl + next_url, data=date_data, headers=headers, proxies=self.proxies, timeout=50)
+            file = open('111.html', 'w')
+            file.write(res.text)
             new_soup = BeautifulSoup(res.text, 'html.parser')
             date_list = re.findall(r'availableDates\\":\[\\"(.*?)}', new_soup.select_one('span[id="_ajax:data"]').text)[0].\
                 replace('\\\"','').replace('\\x5D','').split(',')
@@ -253,7 +260,7 @@ class Spider:
             return key, soup
 
     def getSearchDateTime(self, key, soup, search_data):
-        search_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
+        search_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE/" + str(search_data.get('id'))
         j_id_list = soup.select('script[id]')
         j_id = ""
         for j in j_id_list:
