@@ -36,7 +36,7 @@ export default class Index extends Component {
   }
 
   fetchData = async () => {
-    const {counter: {openId, info: [, , info_id]}} = this.props;
+    const {counter: {openId, info}} = this.props;
     const {cityName} = this.$router.params;
     const {currentMonth, currentYear} = this.state;
     Taro.showLoading({
@@ -46,7 +46,7 @@ export default class Index extends Component {
       const res = await request({
         url: `info/${cityName}`,
         data: {
-          info_id,
+          info_id: info[2],
           openId,
           search_year: currentYear,
           search_month: currentMonth

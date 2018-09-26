@@ -56,7 +56,6 @@ export default class Index extends Component {
 
   getDetail = (info, cityName) => {
     this.setInfo(info);
-    console.log(info);
     Taro.navigateTo({
       url: '/pages/dates/index?cityName=' + cityName
     })
@@ -72,22 +71,29 @@ export default class Index extends Component {
           ) : null
         }
         {
-          (infoList.length > 0) ? infoList.map(info => (
-            <View className='info' key={info[2]} onClick={this.getDetail.bind(this, info, cityName)}>
-              <View className='info-tc_name'>
-                <Text>{info[0]}</Text>
+          (infoList.length > 0) ? infoList.map(info => {
+            console.log(info[0].toUpperCase());
+            return info[0].toUpperCase().indexOf(cityName.toUpperCase()) > -1 ? (
+              <View 
+                className='info' 
+                key={info[2]} 
+                onClick={this.getDetail.bind(this, info, cityName)}
+              >
+                <View className='info-tc_name'>
+                  <Text>{info[0]}</Text>
+                </View>
+                <View className='info-tc_address'>
+                  {
+                    info[1].map(addr => {
+                      return (
+                        <Text className='addr-item' key={addr}>{addr}</Text>
+                      )
+                    })
+                  }
+                </View>
               </View>
-              <View className='info-tc_address'>
-                {
-                  info[1].map(addr => {
-                    return (
-                      <Text className='addr-item' key={addr}>{addr}</Text>
-                    )
-                  })
-                }
-              </View>
-            </View>
-          )) : null
+            ) : null
+          }) : null
         }
       </View>
     )
