@@ -225,36 +225,49 @@ class Spider:
         headers = self.headers
         headers['Referer'] = "https://www6.pearsonvue.com/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE?conversationId=" + self.conversationId
         headers['Upgrade-Insecure-Requests'] = "1"
-        res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=self.proxies, timeout=50)
-        print(res)
+        res = self.session.post(self.baseUrl + searchurl, data=data, headers=headers, proxies=self.proxies, allow_redirects=False, timeout=50)
+        page_cookies = res.cookies.get_dict()
+        print(type(page_cookies))
+
+        search_url = "https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE?conversationId=" + self.conversationId
+        headers = self.headers
+        headers['Upgrade-Insecure-Requests'] = '1'
+        headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/SelectTestCenterProximity/PEARSONLANGUAGE?conversationId=' + self.conversationId
+        # self.session.cookies.set_cookie(**page_cookies)
+        res = self.session.get(search_url, proxies=self.proxies, headers=headers)
+        print(res.cookies.get_dict())
         soup = BeautifulSoup(res.text, 'html.parser')
-        jd_id = soup.select_one('script[id]').get('id')
-        key = soup.select("input[name='javax.faces.ViewState']")[0]["value"]
+        jd_id = soup.select_one("input[id='selectedAppointmentId']").next_sibling.next_sibling.get('id')
+        key = soup.select_one("input[name='javax.faces.ViewState']").get('value')
 
         if not search_data.get('datetime'):
-            date_data = {
-                "AJAXREQUEST": "_viewRoot",
-                "calendarForm:calendarMonth": "Month",
-                "calendarForm:calendarDay": "Day",
-                "calendarForm:apptdates": "Select one...",
-                "selectedAppointmentId": "",
-                "calendarForm": "calendarForm",
-                "autoScroll": "",
-                "javax.faces.ViewState": key,
-                "month": search_data.get('month'),
-                "year": search_data.get('year'),
-                "AJAX:EVENTS_COUNT": 1
-            }
-            date_data[jd_id] = jd_id
-            next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE"
-            headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE'
+            date_data = {"calendarForm:calendarMonth": "Month",
+                         "calendarForm:calendarDay": "Day",
+                         "calendarForm:apptdates": "Select one...",
+                         "selectedAppointmentId": "",
+                         "calendarForm_SUBMIT": "1",
+                         "javax.faces.ViewState": key,
+                         "month": search_data.get('month'),
+                         "year": search_data.get('year'),
+                         "org.richfaces.ajax.component": jd_id,
+                         jd_id: jd_id,
+                         "rfExt": "null",
+                         "AJAX:EVENTS_COUNT": 1,
+                         "javax.faces.partial.event": "undefined",
+                         "javax.faces.source": jd_id,
+                         "javax.faces.partial.ajax": True,
+                         "javax.faces.partial.execute": "@component",
+                         "javax.faces.partial.render": "@component",
+                         "calendarForm": "calendarForm"
+                         }
+            next_url = "/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE/" + self.conversationId
+            headers['Referer'] = 'https://www6.pearsonvue.com/testtaker/registration/CalendarAppointmentSearchPage/PEARSONLANGUAGE?conversationId=' + self.conversationId
             res = self.session.post(self.baseUrl + next_url, data=date_data, headers=headers, proxies=self.proxies, timeout=50)
-            file = open('111.html', 'w')
-            file.write(res.text)
+            # file = open('111.html', 'w')
+            # file.write(res.text)
             new_soup = BeautifulSoup(res.text, 'html.parser')
             date_list = re.findall(r'availableDates\\":\[\\"(.*?)}', new_soup.select_one('span[id="_ajax:data"]').text)[0].\
                 replace('\\\"','').replace('\\x5D','').split(',')
-            # date_list = [x.get('value') for x in new_soup.select('option')][2:-1] #被遗弃的方法，有点小缺陷
             return date_list
         else:
             return key, soup
@@ -344,7 +357,7 @@ class Spider:
             if 'country' in area["types"]:
                 result["code"] = area["short_name"]
                 break
-        
+
         result["location"] = results["geometry"]["location"]
         return result
 
