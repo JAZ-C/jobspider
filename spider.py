@@ -28,6 +28,7 @@ USER_AGENTS = [
 
 class Spider:
     def __init__(self):
+        # 初始化session
         self.session = requests.session()
         self.baseUrl = 'https://www6.pearsonvue.com'
         self.fullUrl = 'https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE'
@@ -53,21 +54,22 @@ class Spider:
         key = soup.select("#SignInForm input[name='javax.faces.ViewState']")[0]["value"]
         return key
 
-    # @retry(stop_max_attempt_number=3)
+
     def login(self):
         """
         执行登录
         :return: 下一级页面登录url
         """
         data = {
-            "inputUserName": "yuqing2132",
-            "inputPassword": "youNI2132",
+            "inputUserName": "yuqing2132", # 用户名
+            "inputPassword": "youNI2132", # 密码
             "submitButton": "Sign In",
             "SignInForm_SUBMIT": 1,
-            "javax.faces.ViewState": self.key
+            "javax.faces.ViewState": self.key # 每一次请求必要带上一页面的key
         }
         headers = self.headers
         headers["Referer"] = "https://www6.pearsonvue.com/testtaker/signin/SignInPage/PEARSONLANGUAGE"
+        # 使用代理登录
         # try:
         try_proxy = IpProxy().http_proxy
         # try_proxys = IpProxy().https_proxy
@@ -189,6 +191,7 @@ class Spider:
         tc_address = [re.match(r'<div class="tc_address">(.*)', str(x)).group(1).split('<br/>')  for x in soup.select('.tc_address')] if soup.select('.tc_address') else []
         tc_href_list = [x.a['href'].strip() for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
         tc_id = [x.a['id'].split("_")[1] for x in soup.select(".tc_info") ] if soup.select(".tc_info") else []
+        # 考点列表
         tc_info = list(zip(tc_name_list, tc_address, tc_id, tc_href_list))
         return tc_info, datekey, locationInfo
 
@@ -303,9 +306,6 @@ class Spider:
             datetime_key, soup = self.getSearchDate(address, datekey, locationInfo, search_data)
             rv_info = self.getSearchDateTime(datetime_key, soup, search_data)
             return rv_info
-
-
-
 
     def get_tcinfo(self, id, url):
         try_proxy = IpProxy().http_proxy
